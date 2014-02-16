@@ -1,0 +1,17 @@
+RewriteEngine On
+RewriteBase /
+
+# Make an ajax request
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ajax/(.+)/(.+)$ /index.php?page=$1&action=$2&ajax=1 [L]
+
+# Make a normal page reques
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.+)/(.+)$ /index.php?page=$1&action=$2&ajax=0 [L]
+
+# Make a page request to default main
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.+)$ /index.php?page=$1&action=main&ajax=0 [L]
+
+SetEnv ENVIRONMENT dev
+SetEnv REALM 1
