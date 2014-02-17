@@ -25,7 +25,7 @@ class Http extends Module{
         return $data;
     }
 
-    public function go($location){
+    public function location($location){
         header("Location: $location");
         exit;
     }
