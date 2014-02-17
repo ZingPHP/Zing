@@ -6,7 +6,7 @@
  * @property Mysql $mysql Functionality to connect to databases
  * @property Smarty $smarty Functionality for smarty templates
  * @property Form $form Functionality for forms and form validation
- * @property Password $password Functionality to work with passwords
+ * @property User $user Functionality to work with users
  * @property Mail $mail Functionality to work with emails
  */
 class Zing{
@@ -27,13 +27,13 @@ class Zing{
             $config       = array(),
             $fullConfig   = array(),
             $modules      = array(
-                "mysql"    => false,
-                "input"    => false,
-                "http"     => false,
-                "smarty"   => false,
-                "form"     => false,
-                "password" => false,
-                "mail" => false,
+                "mysql"  => false,
+                "input"  => false,
+                "http"   => false,
+                "smarty" => false,
+                "form"   => false,
+                "user"   => false,
+                "mail"   => false,
     );
 
     /**
@@ -108,7 +108,7 @@ class Zing{
      */
     public function load(){
         $path      = isset($this->config["path"]) ? $this->config["path"] : "";
-        $page_file = __DIR__ . "/.." . $path . "/Pages/" . Zing::$page . ".php";
+        $page_file = __DIR__ . "/.." . $path . "/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
             require_once $page_file;
             Zing::$page = ucfirst(Zing::$page);
@@ -129,7 +129,9 @@ class Zing{
                 $class->initPage($this->config);
                 Zing::$page = Zing::$page;
                 $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+                $class->runFirst();
                 call_user_func_array(array($class, Zing::$action), array());
+                $class->runLast();
                 if(!Zing::$isAjax){
                     $class->loadTemplates();
                 }
@@ -138,6 +140,20 @@ class Zing{
             echo $e->getMessage();
             $this->notFound();
         }
+    }
+    
+    /**
+     * Runs before the page call (should be overridden)
+     */
+    public function runFirst(){
+        // To use this function override it in the Page's class
+    }
+    
+    /**
+     * Runs after the page call (should be overridden)
+     */
+    public function runLast(){
+        // To use this function override it in the Page's class
     }
 
     /**

@@ -25,4 +25,9 @@ class Http extends Module{
         return $data;
     }
 
+    public function go($location){
+        header("Location: $location");
+        exit;
+    }
+    
 }
