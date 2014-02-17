@@ -3,15 +3,15 @@
 $config = array(
     "websites" => array(
         array(
-            "name"      => "GMServer",
-            "host"      => "gmserver.net",
-            "path"      => "/websites/GMServer",
+            "name"      => "Zing",
+            "host"      => "zing.com",
+            "path"      => "/websites/zingTest",
             "databases" => array(
-                "gmserver" => array(
-                    "hostname" => "mysql.phpsnips.com",
-                    "username" => "ryan",
-                    "password" => "afrid1",
-                    "database" => "gmserver"
+                "localhost" => array(
+                    "hostname" => "localhost",
+                    "username" => "root",
+                    "password" => "",
+                    "database" => "test"
                 )
             )
         ),
