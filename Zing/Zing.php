@@ -267,6 +267,14 @@ class Zing{
      * This doesn't connect to the database
      */
     private function setupDatabases(){
+        // Setup Pirmary global databases
+        if(isset($this->fullConfig["databases"]) && is_array($this->fullConfig["databases"])){
+            foreach($this->fullConfig["databases"] as $name => $data){
+                $this->db->$name = $this->mysql->init($this->config);
+                $this->db->$name->setConnectionParams($data);
+            }
+        }
+        // Setup loacal database (duplicates override global databases)
         if(isset($this->config["databases"]) && is_array($this->config["databases"])){
             foreach($this->config["databases"] as $name => $data){
                 $this->db->$name = $this->mysql->init($this->config);
