@@ -264,7 +264,7 @@ class Zing{
 
     /**
      * Prepare the databases that are in the config file.
-     * This doesn't connect to the database
+     * This won't actually connect to the database
      */
     private function setupDatabases(){
         // Setup Pirmary global databases
