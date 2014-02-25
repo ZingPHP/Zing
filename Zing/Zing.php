@@ -8,6 +8,7 @@
  * @property Form $form Functionality for forms and form validation
  * @property User $user Functionality to work with users
  * @property Mail $mail Functionality to work with emails
+ * @property Util $util Functionality to access utilites
  */
 class Zing{
 
@@ -34,6 +35,7 @@ class Zing{
                 "form"   => false,
                 "user"   => false,
                 "mail"   => false,
+                "util"   => false,
     );
 
     /**
