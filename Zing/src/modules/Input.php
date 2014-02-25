@@ -107,4 +107,50 @@ class Input extends Module{
         }
     }
 
+    /**
+     * Gets the type of data passed in, this is similar to gettype()
+     * only more types of values can be returned.
+     * @param mixed $input
+     * @return string
+     */
+    public function typeof($input){
+        if(filter_var($input, FILTER_VALIDATE_EMAIL)){
+            return "email";
+        }
+        if(filter_var($input, FILTER_VALIDATE_IP)){
+            return "ip";
+        }
+        if(filter_var($input, FILTER_VALIDATE_URL)){
+            return "url";
+        }
+        return gettype($input);
+    }
+
+    /**
+     * Tests to see if a value is an email
+     * @param string $input
+     * @return boolean
+     */
+    public function isEmail($input){
+        return $this->typeof($input) == "email" ? true : false;
+    }
+
+    /**
+     * Tests to see if a value is an ip address
+     * @param string $input
+     * @return boolean
+     */
+    public function isIP($input){
+        return $this->typeof($input) == "ip" ? true : false;
+    }
+
+    /**
+     * Tests to see if a value is a URL
+     * @param string $input
+     * @return boolean
+     */
+    public function isURL($input){
+        return $this->typeof($input) == "url" ? true : false;
+    }
+
 }
