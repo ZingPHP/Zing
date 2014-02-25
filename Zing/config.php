@@ -5,7 +5,7 @@ $config = array(
         array(
             "name"      => "Zing",
             "host"      => "zing.com",
-            "path"      => "/websites/zingTest",
+            "path"      => "/Websites/zingTest",
             "databases" => array(
                 "localhost" => array(
                     "hostname" => "localhost",
