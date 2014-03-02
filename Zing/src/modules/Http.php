@@ -18,6 +18,18 @@ class Http extends Module{
         );
     }
 
+    /**
+     * A key => value (CURLOPT_* => mixed) array of extra options
+     * @param array $options
+     */
+    public function setOpts($options){
+        $this->opts = array_merge($this->opts, $options);
+    }
+
+    /**
+     * Sends the prepared curl request
+     * @return string
+     */
     public function sendRequest(){
         $ch   = curl_init();
         curl_setopt_array($ch, $this->opts);
@@ -25,9 +37,13 @@ class Http extends Module{
         return $data;
     }
 
+    /**
+     * Redirects the page to a new location
+     * @param string $location
+     */
     public function location($location){
         header("Location: $location");
         exit;
     }
-    
+
 }

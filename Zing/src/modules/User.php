@@ -47,6 +47,10 @@ class User extends Module{
         return false;
     }
 
+    /**
+     * Forces user to be logged otherwise redirect to another page.
+     * @param string $location
+     */
     public function requireLogin($location){
         if(!$this->isLogged()){
             header("Location: $location");

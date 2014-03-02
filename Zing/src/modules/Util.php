@@ -4,7 +4,7 @@ class Util extends Module{
 
     /**
      * Tests whether or not the list of arguments are empty
-     * @param string $args,...
+     * @param mixed $args,...
      * @return boolean
      */
     public function isEmpty($args){
@@ -19,7 +19,7 @@ class Util extends Module{
 
     /**
      * Tests whether or not the list of arguments are blank
-     * @param string $args,...
+     * @param mixed $args,...
      * @return boolean
      */
     public function isBlank($args){
@@ -35,12 +35,14 @@ class Util extends Module{
     /**
      * Tests a value to see if it is blank. Blank values are void of valid
      * non-white space characters.
-     * @param string $string
+     * @param $value $string
      * @return boolean
      */
-    public function blank($string){
-        $string = str_replace(array(" ", "\t", "\n", "\r"), "", $string);
-        return empty($string);
+    public function blank($value){
+        if(is_string($value)){
+            $value = str_replace(array(" ", "\t", "\n", "\r"), "", $value);
+        }
+        return empty($value);
     }
 
 }
