@@ -9,6 +9,7 @@
  * @property User $user Functionality to work with users
  * @property Mail $mail Functionality to work with emails
  * @property Util $util Functionality to access utilites
+ * @property File $file Functionality to access files
  */
 class Zing{
 
@@ -36,6 +37,7 @@ class Zing{
                 "user"   => false,
                 "mail"   => false,
                 "util"   => false,
+                "file"   => false,
     );
 
     /**
