@@ -10,6 +10,8 @@
  * @property Mail $mail Functionality to work with emails
  * @property Util $util Functionality to access utilites
  * @property File $file Functionality to access files
+ * @property Math $math Functionality to access math
+ * @property Date $date Functionality to access dates
  */
 class Zing{
 
@@ -38,6 +40,8 @@ class Zing{
                 "mail"   => false,
                 "util"   => false,
                 "file"   => false,
+                "math"   => false,
+                "date"   => false,
     );
 
     /**
@@ -145,14 +149,14 @@ class Zing{
             $this->notFound();
         }
     }
-    
+
     /**
      * Runs before the page call (should be overridden)
      */
     public function runFirst(){
         // To use this function override it in the Page's class
     }
-    
+
     /**
      * Runs after the page call (should be overridden)
      */
