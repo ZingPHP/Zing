@@ -32,5 +32,4 @@ $zing->init($config);
 $zing->setPage($page);
 $zing->setAction($action);
 $zing->setIsAjax($is_ajax);
-$zing->load();
-$zing->exec();
+$zing->run();
