@@ -32,15 +32,15 @@ class Input extends Module{
     public function get($key, $value = null){
         $nargs = func_num_args();
         if(!isset($_GET[$key]) && $nargs === 1){
-            return "";
+            return $this->string;
         }
         if($nargs === 2){
             $_GET[$key] = $value;
             return true;
-        }elseif($nargs === 1){
+        }elseif($nargs === 1 && isset($_GET[$key])){
             return $_GET[$key];
         }else{
-            return false;
+            return $this->string;
         }
     }
 

@@ -102,6 +102,10 @@ class Zing{
         Zing::$isAjax = (bool)$is_ajax;
     }
 
+    public function prepareModules($modules){
+        $this->modules = $modules;
+    }
+
     /**
      * Initialize the framework and website for usage.
      * @param array $config
@@ -111,10 +115,15 @@ class Zing{
         $this->getWebsiteConfig();
     }
 
+    public function run(){
+        $this->load();
+        $this->exec();
+    }
+
     /**
      * Loads the current page and action for use.
      */
-    public function load(){
+    private function load(){
         $path      = isset($this->config["path"]) ? $this->config["path"] : "";
         $page_file = __DIR__ . "/.." . $path . "/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
@@ -129,7 +138,7 @@ class Zing{
     /**
      * Executes the current page and action.
      */
-    public function exec(){
+    private function exec(){
         try{
             $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
             if($reflection->isPublic()){
