@@ -9,7 +9,7 @@
 class Home extends Zing{
 
     public function main(){
-        echo $this->input->defaultString("'name' not found");
+        //echo $this->input->defaultString("'name' not found");
     }
 
 }
