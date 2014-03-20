@@ -12,6 +12,7 @@
  * @property File $file Functionality to access files
  * @property Math $math Functionality to access math
  * @property Date $date Functionality to access dates
+ * @property Validate $validate Functionality to access dates
  */
 class Zing{
 
@@ -31,17 +32,18 @@ class Zing{
             $config       = array(),
             $fullConfig   = array(),
             $modules      = array(
-                "mysql"  => false,
-                "input"  => false,
-                "http"   => false,
-                "smarty" => false,
-                "form"   => false,
-                "user"   => false,
-                "mail"   => false,
-                "util"   => false,
-                "file"   => false,
-                "math"   => false,
-                "date"   => false,
+                "mysql"    => false,
+                "input"    => false,
+                "http"     => false,
+                "smarty"   => false,
+                "form"     => false,
+                "user"     => false,
+                "mail"     => false,
+                "util"     => false,
+                "file"     => false,
+                "math"     => false,
+                "date"     => false,
+                "validate" => false,
     );
 
     /**
@@ -272,7 +274,7 @@ class Zing{
      */
     private function getWebsiteConfig(){
         foreach($this->fullConfig["websites"] as $website){
-            if(strtolower($website["host"]) === $this->host){
+            if(strtolower($website["host"]) === $this->host || (isset($website["alias"]) && in_array($this->host, $website["alias"]))){
                 $this->config = $website;
                 return;
             }
