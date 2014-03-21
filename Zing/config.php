@@ -3,9 +3,13 @@
 $config = array(
     "websites" => array(
         array(
-            "name"      => "ZingPHP",
-            "host"      => "zingphp.com",
-            "path"      => "/Websites/zingphp.com",
+            "name"      => "Zing",
+            "host"      => "zing.com",
+            "alias"     => array(
+                "zingphp.com",
+                "monkey.com"
+            ),
+            "path"      => "/Websites/zingTest",
             "databases" => array(
                 "localhost" => array(
                     "hostname" => "localhost",
