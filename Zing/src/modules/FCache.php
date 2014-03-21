@@ -10,15 +10,18 @@ class FCache extends Module{
     protected $life  = 0;
 
     /**
-     * Initialize a cache to use. The cache doesn't need to exist
-     * to initialize the cache.
+     * Initialize a cache to use. The cache doesn't need to exist to be initialized.
+     * If the cache directory is not found, it will be created.
      * @param string $key
      * @param string $root
      * @return self
      */
     public function init($key, $root = "/cache"){
         $this->root = __DIR__ . str_replace("//", "/", "/../../$root");
-        $this->key  = $key;
+        if(!is_dir($this->root)){
+            mkdir($this->root);
+        }
+        $this->key = $key;
         return $this;
     }
 
