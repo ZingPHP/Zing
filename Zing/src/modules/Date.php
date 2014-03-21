@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class Date extends Module{
 
     /**
@@ -51,16 +53,16 @@ class Date extends Module{
         $seconds             = ceil($divisor_for_seconds);
         return "$hours:$minutes:$seconds";
     }
-    
+
     /**
      * Gets the number of seconds in a time
      * @param time $time
      * @return int
      */
     public function timeToSec($time){
-        $times = array_replace(array(0,0,0), explode(":", $time));
-        $th = (int)$times[0] * 60 * 60;
-        $tm = (int)$times[1] * 60;
+        $times = array_replace(array(0, 0, 0), explode(":", $time));
+        $th    = (int)$times[0] * 60 * 60;
+        $tm    = (int)$times[1] * 60;
         return $th + $tm + (int)$times[2];
     }
 

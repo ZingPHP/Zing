@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class File extends Module{
 
     protected $filename = "";
@@ -51,7 +53,7 @@ class File extends Module{
      */
     public function copy($destination, $source = null){
         $filename = $this->getFile($filename);
-        $content = file_get_contents($source);
+        $content  = file_get_contents($source);
         file_put_contents($destination, $content);
     }
 
@@ -65,7 +67,7 @@ class File extends Module{
         $filename = $this->getFile($filename);
         file_put_contents($filename, $content);
     }
-    
+
     /**
      * Reads the contents of a file.
      * @param string $filename

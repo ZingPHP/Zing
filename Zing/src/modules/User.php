@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class User extends Module{
 
     /**
@@ -57,5 +59,5 @@ class User extends Module{
             exit;
         }
     }
-    
+
 }

@@ -1,21 +1,23 @@
 <?php
 
+namespace Modules;
+
 class Mysql extends Module{
 
     private
-            $hostname = "",
-            $username = "",
-            $password = "",
-            $database = "",
-            $db       = null,
-            $sql      = null;
+            $hostname           = "",
+            $username           = "",
+            $password           = "",
+            $database           = "",
+            $db                 = null,
+            $sql                = null;
     private $table_primary_keys = array();
 
     public function setConnectionParams($config){
-      $this->hostname = isset($config["hostname"]) ? $config["hostname"] : "";
-      $this->username = isset($config["username"]) ? $config["username"] : "";
-      $this->password = isset($config["password"]) ? $config["password"] : "";
-      $this->database = isset($config["username"]) ? $config["database"] : "";
+        $this->hostname = isset($config["hostname"]) ? $config["hostname"] : "";
+        $this->username = isset($config["username"]) ? $config["username"] : "";
+        $this->password = isset($config["password"]) ? $config["password"] : "";
+        $this->database = isset($config["username"]) ? $config["database"] : "";
     }
 
     /**

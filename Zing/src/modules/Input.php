@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class Input extends Module{
 
     /**

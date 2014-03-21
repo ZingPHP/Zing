@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class Math extends Module{
 
     const miles      = true;
@@ -55,7 +57,7 @@ class Math extends Module{
     }
 
     /**
-     * 
+     *
      * @param float $lat1  Latitude of point A
      * @param float $long1 Longitude of point A
      * @param float $lat2  Latitude of point B
@@ -80,7 +82,7 @@ class Math extends Module{
     }
 
     /**
-     * 
+     *
      * @param int $deposit Initial deposit
      * @param float $rate  Interest Rate
      * @param int $n       # of times per year interest is compounded

@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class Validate extends Module{
 
     /**

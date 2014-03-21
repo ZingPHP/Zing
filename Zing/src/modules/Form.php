@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class Form extends Module{
 
     protected
@@ -33,9 +35,9 @@ class Form extends Module{
 
     public function getForm(){
         $rform = array();
-        /*if(!isset($_SESSION["ZingForm"])){
-            return;
-        }*/
+        /* if(!isset($_SESSION["ZingForm"])){
+          return;
+          } */
         /** @var $item FormItem */
         foreach($this->formItems as $item){
             $params   = $item->getParams();
@@ -82,7 +84,7 @@ class Form extends Module{
     }
 
     /**
-     * 
+     *
      * @param string $form_name
      * @return Form
      */
@@ -192,9 +194,9 @@ class Form extends Module{
         $this->method   = isset($params["method"]) ? $params["method"] : "";
         $this->formName = isset($params["formName"]) ? $params["formName"] : "";
         if(!isset($_SESSION["ZingForm"][$this->formName])){
-            $_SESSION["ZingForm"][$this->formName]["info"] = array();
+            $_SESSION["ZingForm"][$this->formName]["info"]           = array();
             $_SESSION["ZingForm"][$this->formName]["info"]["method"] = $this->method;
-            $_SESSION["ZingForm"][$this->formName]["data"] = array();
+            $_SESSION["ZingForm"][$this->formName]["data"]           = array();
         }
     }
 

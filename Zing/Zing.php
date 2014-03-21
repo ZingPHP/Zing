@@ -1,18 +1,18 @@
 <?php
 
 /**
- * @property Input $input Functionality for global variables
- * @property Http $http Functionality to Http
- * @property Mysql $mysql Functionality to connect to databases
- * @property Smarty $smarty Functionality for smarty templates
- * @property Form $form Functionality for forms and form validation
- * @property User $user Functionality to work with users
- * @property Mail $mail Functionality to work with emails
- * @property Util $util Functionality to access utilites
- * @property File $file Functionality to access files
- * @property Math $math Functionality to access math
- * @property Date $date Functionality to access dates
- * @property Validate $validate Functionality to access dates
+ * @property Modules\Input $input Functionality for global variables
+ * @property Modules\Http $http Functionality to Http
+ * @property Modules\Mysql $mysql Functionality to connect to databases
+ * @property Modules\Smarty $smarty Functionality for smarty templates
+ * @property Modules\Form $form Functionality for forms and form validation
+ * @property Modules\User $user Functionality to work with users
+ * @property Modules\Mail $mail Functionality to work with emails
+ * @property Modules\Util $util Functionality to access utilites
+ * @property Modules\File $file Functionality to access files
+ * @property Modules\Math $math Functionality to access math
+ * @property Modules\Date $date Functionality to access dates
+ * @property Modules\Validate $validate Functionality to access dates
  */
 class Zing{
 
@@ -53,8 +53,20 @@ class Zing{
      */
     public function __get($name){
         if(array_key_exists($name, $this->modules) && !$this->modules[$name]){
-            $class                = ucfirst($name);
-            $this->$name          = new $class($this->config);
+            $class = ucfirst($name);
+            try{
+                if($name !== "smarty"){
+                    $class = "Modules\\$class";
+                }
+                $this->$name = new $class($this->config);
+            }catch(Exception $e){
+                try{
+                    $class       = "Plugins\\$class";
+                    $this->$name = new $class($this->config);
+                }catch(Exception $e){
+                    throw $e;
+                }
+            }
             $this->modules[$name] = true;
             return $this->$name;
         }
@@ -164,6 +176,9 @@ class Zing{
         }else{
             $main = $templates . Zing::$page . "/" . Zing::$action . ".tpl";
         }
+        if(!is_file($main)){
+            throw new Exception("Template Not Found.");
+        }
         $footer = $templates . $this->footerTpl . ".tpl";
         if($this->tplShell !== null){
             $shell = $templates . "Shells/" . $this->tplShell . ".tpl";
@@ -231,7 +246,13 @@ class Zing{
             Zing::$page = ucfirst(Zing::$page);
             Zing::$action = lcfirst(Zing::$action);
         }else{
-            $this->notFound();
+            try{
+                if(!Zing::$isAjax){
+                    $this->loadTemplates();
+                }
+            }catch(Exception $e){
+                $this->notFound();
+            }
         }
     }
 
@@ -242,7 +263,7 @@ class Zing{
         try{
             $this->runPage();
         }catch(Exception $e){
-            echo $e->getMessage();
+            //echo $e->getMessage();
             $this->notFound();
         }
     }
@@ -251,17 +272,23 @@ class Zing{
      * Runs the page
      */
     private function runPage(){
-        $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
-        if($reflection->isPublic()){
-            $class  = new Zing::$page();
-            $class->initPage($this->config);
-            Zing::$page = Zing::$page;
-            $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
-            $class->runFirst();
-            call_user_func_array(array($class, Zing::$action), array());
-            $class->runLast();
+        try{
+            $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
+            if($reflection->isPublic()){
+                $class  = new Zing::$page();
+                $class->initPage($this->config);
+                Zing::$page = Zing::$page;
+                $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+                $class->runFirst();
+                call_user_func_array(array($class, Zing::$action), array());
+                $class->runLast();
+                if(!Zing::$isAjax){
+                    $class->loadTemplates();
+                }
+            }
+        }catch(Exception $e){
             if(!Zing::$isAjax){
-                $class->loadTemplates();
+                $this->loadTemplates();
             }
         }
     }
@@ -322,7 +349,8 @@ class Zing{
  * Zing incorrectly.
  */
 spl_autoload_register(function($class){
-    $file = __DIR__ . "/src/modules/$class.php";
+    $class = str_replace("\\", "/", $class);
+    $file  = __DIR__ . "/src/$class.php";
     if(is_file($file)){
         require_once $file;
         return;

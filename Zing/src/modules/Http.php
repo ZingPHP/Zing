@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class Http extends Module{
 
     private $opts = array();

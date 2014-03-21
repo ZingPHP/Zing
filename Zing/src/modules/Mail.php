@@ -1,5 +1,7 @@
 <?php
 
+namespace Modules;
+
 class Mail extends Module{
 
     protected $attachments = array();
@@ -44,7 +46,7 @@ class Mail extends Module{
     /**
      * Sends a message to the list of recipients.<br>
      * Note: Once the email is sent, everything gets reset.
-     * @param array $from       Who the email is from 
+     * @param array $from       Who the email is from
      *                          array("email" => "ex@site.com", "name" => "Billy Bob")
      * @param string $subject   The subject of the message
      * @param string $message   The body of the message

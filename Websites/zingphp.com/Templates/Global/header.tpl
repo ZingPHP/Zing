@@ -70,6 +70,13 @@
                 margin: 0;
                 padding: 0 50px;
             }
+            footer{
+                background-color: #2e3234;
+                color: #ffffff;
+                float: left;
+                width: 100%;
+                padding: 100px 50px;
+            }
             nav a{
                 padding: 10px 20px;
                 float: left;
@@ -92,7 +99,6 @@
                 background-color: #ffffff;
                 padding: 100px 50px;
                 clear: both;
-                /*height: 100%;*/
             }
             main{
                 float: left;
@@ -144,6 +150,9 @@
 
             .arrow-down.white{
                 border-top: 50px solid rgb(255, 255, 255);
+            }
+            .arrow-down.green{
+                border-top: 50px solid #7dfd81;
             }
 
             .content.green h2{
