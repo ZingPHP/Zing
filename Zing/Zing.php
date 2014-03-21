@@ -130,8 +130,12 @@ class Zing{
     }
 
     public function run(){
-        $this->load();
-        $this->exec();
+        try{
+            $this->load();
+            $this->exec();
+        }catch(Exception $e){
+
+        }
     }
 
     /**
@@ -237,6 +241,7 @@ class Zing{
 
     /**
      * Loads the current page and action for use.
+     * If a Page is not found, attempt to load the templates.
      */
     private function load(){
         $path      = isset($this->config["path"]) ? $this->config["path"] : "";
@@ -260,35 +265,30 @@ class Zing{
      * Executes the current page and action.
      */
     private function exec(){
-        try{
-            $this->runPage();
-        }catch(Exception $e){
-            //echo $e->getMessage();
-            $this->notFound();
-        }
+        //try{
+        $this->runPage();
+        //}catch(Exception $e){
+        //echo $e->getMessage();
+        //$this->notFound();
+        //$this->loadTemplates();
+        //}
     }
 
     /**
      * Runs the page
      */
     private function runPage(){
-        try{
-            $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
-            if($reflection->isPublic()){
-                $class  = new Zing::$page();
-                $class->initPage($this->config);
-                Zing::$page = Zing::$page;
-                $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
-                $class->runFirst();
-                call_user_func_array(array($class, Zing::$action), array());
-                $class->runLast();
-                if(!Zing::$isAjax){
-                    $class->loadTemplates();
-                }
-            }
-        }catch(Exception $e){
+        $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
+        if($reflection->isPublic()){
+            $class  = new Zing::$page();
+            $class->initPage($this->config);
+            Zing::$page = Zing::$page;
+            $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+            $class->runFirst();
+            call_user_func_array(array($class, Zing::$action), array());
+            $class->runLast();
             if(!Zing::$isAjax){
-                $this->loadTemplates();
+                $class->loadTemplates();
             }
         }
     }
