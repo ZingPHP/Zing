@@ -26,10 +26,11 @@ class FCache extends Module{
     }
 
     /**
-     * Update the cache if the time period has passed
+     * Update the cache if the time period has passed. If the time has not passed
+     * it will return what is in the cache, otherwise it will return the new cache.
      * @param int $life_span Time in seconds
      * @param callback $callback
-     * @return type
+     * @return mixed
      * @throws Exception
      */
     public function cache($life_span, $callback){
