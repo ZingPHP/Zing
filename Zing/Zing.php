@@ -63,9 +63,9 @@ class Zing{
         $this->db   = (object)array();
         $this->root = $_SERVER["DOCUMENT_ROOT"];
         if(isset($_GET["host"])){
-            $this->host = $_GET["host"];
+            $this->host = preg_replace("/^www(.*?)\./", "", $_GET["host"]);
         }else{
-            $this->host = $_SERVER["HTTP_HOST"];
+            $this->host = preg_replace("/^www(.*?)\./", "", $_SERVER["HTTP_HOST"]);
         }
     }
 
@@ -121,45 +121,6 @@ class Zing{
     }
 
     /**
-     * Loads the current page and action for use.
-     */
-    private function load(){
-        $path      = isset($this->config["path"]) ? $this->config["path"] : "";
-        $page_file = __DIR__ . "/.." . $path . "/Pages/" . ucfirst(Zing::$page) . ".php";
-        if(is_file($page_file)){
-            require_once $page_file;
-            Zing::$page = ucfirst(Zing::$page);
-            Zing::$action = lcfirst(Zing::$action);
-        }else{
-            $this->notFound();
-        }
-    }
-
-    /**
-     * Executes the current page and action.
-     */
-    private function exec(){
-        try{
-            $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
-            if($reflection->isPublic()){
-                $class  = new Zing::$page();
-                $class->initPage($this->config);
-                Zing::$page = Zing::$page;
-                $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
-                $class->runFirst();
-                call_user_func_array(array($class, Zing::$action), array());
-                $class->runLast();
-                if(!Zing::$isAjax){
-                    $class->loadTemplates();
-                }
-            }
-        }catch(Exception $e){
-            echo $e->getMessage();
-            $this->notFound();
-        }
-    }
-
-    /**
      * Runs before the page call (should be overridden)
      */
     public function runFirst(){
@@ -171,6 +132,21 @@ class Zing{
      */
     public function runLast(){
         // To use this function override it in the Page's class
+    }
+
+    /**
+     * Displays a 404 page. Error files are located in "Zing/Errors".
+     */
+    public function notFound(){
+        header("HTTP/1.0 404 Not Found");
+        header("Status: 404 Not Found");
+        $not_found = $this->root . "/Zing/Errors/404.php";
+        if(is_file($not_found)){
+            require_once $not_found;
+        }else{
+            echo "<!DOCTYPE html><html><head><title>Page Not Found</title></head><body><h1>Page Not Found</h1><p>The Page you are looking for was not found.</p></body></html>";
+        }
+        exit;
     }
 
     /**
@@ -243,18 +219,49 @@ class Zing{
     }
 
     /**
-     * Displays a 404 page. Error files are located in "Zing/Errors".
+     * Loads the current page and action for use.
      */
-    public function notFound(){
-        header("HTTP/1.0 404 Not Found");
-        header("Status: 404 Not Found");
-        $not_found = $this->root . "/Zing/Errors/404.php";
-        if(is_file($not_found)){
-            require_once $not_found;
+    private function load(){
+        $path      = isset($this->config["path"]) ? $this->config["path"] : "";
+        $page_file = __DIR__ . "/.." . $path . "/Pages/" . ucfirst(Zing::$page) . ".php";
+        if(is_file($page_file)){
+            require_once $page_file;
+            Zing::$page = ucfirst(Zing::$page);
+            Zing::$action = lcfirst(Zing::$action);
         }else{
-            echo "<!DOCTYPE html><html><head><title>Page Not Found</title></head><body><h1>Page Not Found</h1><p>The Page you are looking for was not found.</p></body></html>";
+            $this->notFound();
         }
-        exit;
+    }
+
+    /**
+     * Executes the current page and action.
+     */
+    private function exec(){
+        try{
+            $this->runPage();
+        }catch(Exception $e){
+            echo $e->getMessage();
+            $this->notFound();
+        }
+    }
+
+    /**
+     * Runs the page
+     */
+    private function runPage(){
+        $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
+        if($reflection->isPublic()){
+            $class  = new Zing::$page();
+            $class->initPage($this->config);
+            Zing::$page = Zing::$page;
+            $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+            $class->runFirst();
+            call_user_func_array(array($class, Zing::$action), array());
+            $class->runLast();
+            if(!Zing::$isAjax){
+                $class->loadTemplates();
+            }
+        }
     }
 
     /**
@@ -302,6 +309,16 @@ class Zing{
 
 }
 
+/**
+ * Loads classes so the user doesn't have to.
+ *
+ * We use spl_autoload_register() so the user can create their own autoloader
+ * if needed using either a custom spl_autoload_register() or __autoload().
+ *
+ * When using Zing, the user shouldn't need to create thier own autoloader
+ * Everything should be loaded automaically already, if not they are using
+ * Zing incorrectly.
+ */
 spl_autoload_register(function($class){
     $file = __DIR__ . "/src/modules/$class.php";
     if(is_file($file)){

@@ -1,4 +1,6 @@
 <a href="/"><h1><b>Zing</b>php</h1></a>
+<h1 class="blerb">The small lightweight framework.</h1>
+<h2 class="blerb">Stupid simple programming.</h2>
 <main>
     <div class="content white">
         <div class="section">
@@ -49,3 +51,8 @@
         <h2>Who uses ZingPHP?</h2>
     </div>
 </main>
+<script>
+    $("main").css({
+        marginTop: (window.innerHeight - 350) + "px"
+    });
+</script>

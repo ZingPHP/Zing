@@ -3,6 +3,7 @@
     <head>
         <title>ZINGPHP | PHP Framework</title>
         <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
         <style>
             @import url(http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800);
             *{
@@ -38,8 +39,25 @@
             h1 > b{
                 color: #ffffff;
             }
+            h1.blerb{
+                font-size: 60px;
+                text-align: center;
+                width: 100%;
+                float: left;
+                margin-left: 0;
+                color: #ffffff;
+                margin-top: 150px;
+                text-transform: none;
+            }
             h2{
                 font-size: 40px;
+            }
+            h2.blerb{
+                text-align: center;
+                width: 100%;
+                float: left;
+                margin-left: 0;
+                text-transform: none;
             }
             h3{
                 font-size: 30px;
