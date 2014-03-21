@@ -6,7 +6,7 @@ $config = array(
             "name"      => "ZingPHP",
             "host"      => "zingphp.com",
             "alias"     => array(
-                "zingphp.com",
+                "zing.com",
                 "monkey.com"
             ),
             "path"      => "/Websites/zingphp.com",
