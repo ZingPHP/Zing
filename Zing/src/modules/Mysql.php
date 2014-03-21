@@ -95,6 +95,42 @@ class Mysql extends Module{
     }
 
     /**
+     * creates a multirow insert query
+     * @param string $table   The table name
+     * @param array $columns  Array of columns to use
+     * @param array $params   Multilevel array of values
+     * @param string $ignore  Adds an 'ignore' to the insert query
+     * @param string $after   A final statment such as 'on duplicate key...'
+     * @return boolean
+     * @throws Exception
+     */
+    public function insertMultiRow($table, array $columns, array $params, $ignore = false, $after = ""){
+        $ncols = count($columns);
+        if(!$this->_validName($table)){
+            throw new Exception("Invalid Table Name '$table'.");
+        }
+        if((bool)$ignore && strlen($after) > 0){
+            throw new Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
+        }
+
+        $ign = (bool)$ignore ? "ignore" : "";
+
+        $sql  = "insert $ign into $table";
+        $sql .= " (" . implode(",", $columns) . ") ";
+        $sql .= " values ";
+        $data = array();
+        foreach($params as $p){
+            $this->_validMultiInsertValue($p, $ncols);
+            $data[] = "(" . implode(",", array_pad(array(), $ncols, "?")) . ")";
+        }
+        $sql .= implode(",", $data);
+        $sql .= " $after";
+        $it = new RecursiveIteratorIterator(new RecursiveArrayIterator($params));
+        $p  = iterator_to_array($it, false);
+        return $this->query($sql, $p);
+    }
+
+    /**
      * Gets a list of items from a table based on the primary key
      * @param string $table
      * @param mixed $id
@@ -102,13 +138,13 @@ class Mysql extends Module{
      * @return array|boolean
      */
     public function getById($table, $id, $uniq = true){
+        if(!$this->_validName($table)){
+            throw new Exception("Invalid Table Name '$table'.");
+        }
         $id     = (int)$id;
         $column = $this->getPrimary($table);
-        if($this->validName($table)){
-            $extra = $uniq ? "limit 1" : "";
-            return $this->getAll("select * from $table where $column = ? $extra", array($id));
-        }
-        return false;
+        $extra  = $uniq ? "limit 1" : "";
+        return $this->getAll("select * from $table where $column = ? $extra", array($id));
     }
 
     /**
@@ -190,7 +226,7 @@ class Mysql extends Module{
      * @param string $string
      * @return boolean
      */
-    private function validName($string){
+    private function _validName($string){
         return !preg_match("/[^a-zA-Z0-9\$_]/i", $string);
     }
 

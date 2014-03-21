@@ -13,6 +13,7 @@
  * @property Modules\Math $math Functionality to access math
  * @property Modules\Date $date Functionality to access dates
  * @property Modules\Validate $validate Functionality to access dates
+ * @property Modules\FCache $fcache Functionality to access dates
  */
 class Zing{
 
@@ -44,6 +45,7 @@ class Zing{
                 "math"     => false,
                 "date"     => false,
                 "validate" => false,
+                "fcache"   => false,
     );
 
     /**
@@ -131,8 +133,9 @@ class Zing{
 
     public function run(){
         try{
-            $this->load();
-            $this->exec();
+            if($this->load()){
+                $this->runPage();
+            }
         }catch(Exception $e){
 
         }
@@ -250,29 +253,26 @@ class Zing{
             require_once $page_file;
             Zing::$page = ucfirst(Zing::$page);
             Zing::$action = lcfirst(Zing::$action);
+            return true;
         }else{
             try{
                 if(!Zing::$isAjax){
                     $this->loadTemplates();
+                    return false;
                 }
             }catch(Exception $e){
                 $this->notFound();
             }
         }
+        return false;
     }
 
     /**
      * Executes the current page and action.
      */
-    private function exec(){
-        //try{
-        $this->runPage();
-        //}catch(Exception $e){
-        //echo $e->getMessage();
-        //$this->notFound();
-        //$this->loadTemplates();
-        //}
-    }
+    /* private function exec(){
+      $this->runPage();
+      } */
 
     /**
      * Runs the page

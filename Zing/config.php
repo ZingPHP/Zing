@@ -7,7 +7,8 @@ $config = array(
             "host"      => "zingphp.com",
             "alias"     => array(
                 "zing.com",
-                "monkey.com"
+                "monkey.com",
+                "172.21.20.75"
             ),
             "path"      => "/Websites/zingphp.com",
             "databases" => array(
