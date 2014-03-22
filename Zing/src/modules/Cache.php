@@ -1,0 +1,80 @@
+<?php
+
+namespace Modules;
+
+class Cache extends \Modules\Module{
+
+    const FCACHE   = 1;
+    const MEMCACHE = 2;
+    const APC      = 3;
+
+    protected $cache = null;
+
+    /**
+     * Sets the Caching engine to use. Valid Engines are:
+     * FCACHE   = File Caching
+     * MEMCACHE = MemCache
+     * APC      = PHP's APC
+     * @param int $cache_to_use
+     * @return \Modules\Cache
+     * @throws \Exception
+     */
+    public function setCacheEngine($cache_to_use = self::FCACHE){
+        switch($cache_to_use){
+            case self::FCACHE:
+                $this->cache = new \Modules\Cache\FCache();
+                break;
+            case self::APC:
+                $this->cache = new \Modules\Cache\APCache();
+                break;
+            default:
+                throw new \Exception("Caching engine not supported.");
+        }
+        return $this;
+    }
+
+    public function put($name, $data, $ttl){
+        $this->_setCacheEngine();
+        $this->cache->put($name, $data, $ttl);
+    }
+
+    public function isExpired($name, $ttl){
+        $this->_setCacheEngine();
+        return $this->cache->isExpired($name, $ttl);
+    }
+
+    public function get($name){
+        $this->_setCacheEngine();
+        return $this->cache->get($name);
+    }
+
+    public function delete($name){
+        $this->_setCacheEngine();
+        return $this->cache->delete($name);
+    }
+
+    public function destroyCache(){
+        $this->_setCacheEngine();
+        return $this->cache->destroyCache();
+    }
+
+    public function cache($name, $ttl, $callback){
+        $this->_setCacheEngine();
+        if(!is_callable($callback)){
+            throw new \Exception("Paramater 3 must be a callable function.");
+        }
+        if($this->isExpired($name, $ttl)){
+            $data = call_user_func($callback);
+            $this->put($name, $data, $ttl);
+        }
+        return $this->get($name);
+    }
+
+    protected function _setCacheEngine(){
+        if($this->cache !== null){
+            return;
+        }
+        $this->setCacheEngine();
+    }
+
+}

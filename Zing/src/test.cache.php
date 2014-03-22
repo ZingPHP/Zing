@@ -1,0 +1,1 @@
+<?php exit; ?>["hello","how","are","you"]

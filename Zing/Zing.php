@@ -13,7 +13,7 @@
  * @property Modules\Math $math Functionality to access math
  * @property Modules\Date $date Functionality to access dates
  * @property Modules\Validate $validate Functionality to access dates
- * @property Modules\FCache $fcache Functionality to access dates
+ * @property Modules\Cache $cache Functionality to access dates
  */
 class Zing{
 
@@ -25,7 +25,8 @@ class Zing{
             $db         = null,
             $host       = "",
             $root       = "",
-            $pageExists = false;
+            $pageExists = false,
+            $namespace  = "";
     private
             $headerTpl    = "Global/header",
             $footerTpl    = "Global/footer",
@@ -46,7 +47,7 @@ class Zing{
                 "math"     => false,
                 "date"     => false,
                 "validate" => false,
-                "fcache"   => false,
+                "cache"    => false,
     );
 
     /**
@@ -57,19 +58,10 @@ class Zing{
     public function __get($name){
         if(array_key_exists($name, $this->modules) && !$this->modules[$name]){
             $class = ucfirst($name);
-            try{
-                if($name !== "smarty"){
-                    $class = "Modules\\$class";
-                }
-                $this->$name = new $class($this->config);
-            }catch(Exception $e){
-                try{
-                    $class       = "Plugins\\$class";
-                    $this->$name = new $class($this->config);
-                }catch(Exception $e){
-                    throw $e;
-                }
+            if($name !== "smarty"){
+                $class = "Modules\\$class";
             }
+            $this->$name          = new $class($this->config);
             $this->modules[$name] = true;
             return $this->$name;
         }

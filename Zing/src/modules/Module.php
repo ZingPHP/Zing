@@ -4,12 +4,14 @@ namespace Modules;
 
 class Module{
 
-    public $config = array();
-    public $string = "";
-    public $int    = 0;
+    public $config    = array();
+    public $string    = "";
+    public $int       = 0;
+    public $namespace = "";
 
     public function __construct($config = array()){
         $this->config = $config;
+        $namespace    = get_called_class();
     }
 
     public function __toString(){
