@@ -24,7 +24,8 @@ class Zing{
     protected
             $db         = null,
             $host       = "",
-            $root       = "";
+            $root       = "",
+            $pageExists = false;
     private
             $headerTpl    = "Global/header",
             $footerTpl    = "Global/footer",
@@ -137,7 +138,11 @@ class Zing{
                 $this->runPage();
             }
         }catch(Exception $e){
-
+            try{
+                $this->loadTemplates();
+            }catch(Exception $e){
+                $this->notFound();
+            }
         }
     }
 
@@ -183,7 +188,7 @@ class Zing{
         }else{
             $main = $templates . Zing::$page . "/" . Zing::$action . ".tpl";
         }
-        if(!is_file($main)){
+        if(!is_file($main) && !$this->pageExists){
             throw new Exception("Template Not Found.");
         }
         $footer = $templates . $this->footerTpl . ".tpl";
@@ -280,13 +285,14 @@ class Zing{
     private function runPage(){
         $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
         if($reflection->isPublic()){
-            $class  = new Zing::$page();
+            $class            = new Zing::$page();
             $class->initPage($this->config);
             Zing::$page = Zing::$page;
-            $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+            $action           = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
             $class->runFirst();
             call_user_func_array(array($class, Zing::$action), array());
             $class->runLast();
+            $this->pageExists = true;
             if(!Zing::$isAjax){
                 $class->loadTemplates();
             }
