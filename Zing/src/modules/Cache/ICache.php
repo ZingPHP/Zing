@@ -4,7 +4,7 @@ namespace Modules\Cache;
 
 interface ICache{
 
-    public function put($name, $data, $ttl);
+    public function put($name, $data);
 
     public function get($name);
 

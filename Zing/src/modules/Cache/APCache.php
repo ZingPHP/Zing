@@ -9,6 +9,9 @@ class APCache extends \Modules\Module implements \Modules\Cache\ICache{
     }
 
     public function isExpired($name, $ttl){
+        if($ttl === null){
+            return false;
+        }
         $info = apc_cache_info("user");
         $time = time();
         foreach($info["cache_list"] as $value){
@@ -18,8 +21,8 @@ class APCache extends \Modules\Module implements \Modules\Cache\ICache{
         }
     }
 
-    public function put($name, $data, $ttl){
-        apc_store($name, $data, $ttl);
+    public function put($name, $data){
+        apc_store($name, $data);
     }
 
     public function destroy(){

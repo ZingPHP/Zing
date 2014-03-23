@@ -23,11 +23,13 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
      * @return boolean
      */
     public function isExpired($cache, $ttl){
-        $this->life = $ttl;
-        $file       = $this->root . "/$cache.cache.php";
+        $file = $this->root . "/$cache.cache.php";
         if(is_file($file)){
+            if($ttl === null){
+                return false;
+            }
             $mtime = filemtime($file);
-            return (time() >= ($mtime + $this->life));
+            return (time() >= ($mtime + $ttl));
         }else{
             return true;
         }
@@ -38,7 +40,7 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
      * @param mixed $content
      * @return boolean
      */
-    public function put($cache, $content, $ttl = 0){
+    public function put($cache, $content){
         $file = $this->root . "/$cache.cache.php";
         if(!is_dir(dirname($this->root))){
             return false;

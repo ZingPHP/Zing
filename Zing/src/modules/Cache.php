@@ -25,6 +25,9 @@ class Cache extends \Modules\Module{
                 $this->cache = new \Modules\Cache\FCache();
                 break;
             case self::APC:
+                if(!function_exists("apc_store")){
+                    throw new \Exception("APC is currently not installed or enabled.");
+                }
                 $this->cache = new \Modules\Cache\APCache();
                 break;
             default:
@@ -33,9 +36,9 @@ class Cache extends \Modules\Module{
         return $this;
     }
 
-    public function put($name, $data, $ttl){
+    public function put($name, $data){
         $this->_setCacheEngine();
-        $this->cache->put($name, $data, $ttl);
+        $this->cache->put($name, $data);
     }
 
     public function isExpired($name, $ttl){
