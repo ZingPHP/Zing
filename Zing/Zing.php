@@ -4,7 +4,7 @@
  * @property Modules\Input $input Functionality for global variables
  * @property Modules\Http $http Functionality to Http
  * @property Modules\Mysql $mysql Functionality to connect to databases
- * @property Modules\Smarty $smarty Functionality for smarty templates
+ * @property Smarty $smarty Functionality for smarty templates
  * @property Modules\Form $form Functionality for forms and form validation
  * @property Modules\User $user Functionality to work with users
  * @property Modules\Mail $mail Functionality to work with emails
@@ -141,14 +141,14 @@ class Zing{
     /**
      * Runs before the page call (should be overridden)
      */
-    public function runFirst(){
+    public function runBefore(){
         // To use this function override it in the Page's class
     }
 
     /**
      * Runs after the page call (should be overridden)
      */
-    public function runLast(){
+    public function runAfter(){
         // To use this function override it in the Page's class
     }
 
@@ -275,15 +275,20 @@ class Zing{
      * Runs the page
      */
     private function runPage(){
-        $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
+        try{
+            $reflection = new ReflectionMethod(Zing::$page, Zing::$action);
+        }catch(Exception $e){
+            $reflection = new ReflectionMethod(Zing::$page, "catchAll");
+            $this->setAction("catchAll");
+        }
         if($reflection->isPublic()){
             $class            = new Zing::$page();
             $class->initPage($this->config);
             Zing::$page = Zing::$page;
             $action           = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
-            $class->runFirst();
+            $class->runBefore();
             call_user_func_array(array($class, Zing::$action), array());
-            $class->runLast();
+            $class->runAfter();
             $this->pageExists = true;
             if(!Zing::$isAjax){
                 $class->loadTemplates();
