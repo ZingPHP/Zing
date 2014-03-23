@@ -111,10 +111,6 @@ class Zing{
         Zing::$isAjax = (bool)$is_ajax;
     }
 
-    public function prepareModules($modules){
-        $this->modules = $modules;
-    }
-
     /**
      * Initialize the framework and website for usage.
      * @param array $config

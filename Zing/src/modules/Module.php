@@ -18,6 +18,10 @@ class Module{
         return $this->string;
     }
 
+    public function getString(){
+        return $this->string;
+    }
+
     /**
      * Sets a default string to the string property
      * it can then be returned in a module.
@@ -37,6 +41,11 @@ class Module{
      */
     public function defaultInt($int){
         $this->int = (int)$int;
+        return $this;
+    }
+
+    public function replace($find, $replace){
+        str_replace($find, $replace, $this->string);
         return $this;
     }
 

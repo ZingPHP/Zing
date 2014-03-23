@@ -40,6 +40,8 @@ class Input extends Module{
             $_GET[$key] = $value;
             return true;
         }elseif($nargs === 1 && isset($_GET[$key])){
+            /* $this->string = $_GET[$key];
+              return $this; */
             return $_GET[$key];
         }else{
             return $this->string;

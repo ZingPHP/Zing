@@ -62,14 +62,14 @@
         $("main").css({
             marginTop: (window.innerHeight - 350) + "px"
         });
-        $(".content, footer").css({
-            height: (window.innerHeight + 250) + "px"
-        });
+        /* $(".content, footer").css({
+         height: (window.innerHeight + 250) + "px"
+         });
 
-        $(window).resize(function(){
-            $("main").css({
-                marginTop: (window.innerHeight - 350) + "px"
-            });
-        });
+         $(window).resize(function(){
+         $("main").css({
+         marginTop: (window.innerHeight - 350) + "px"
+         });
+         });*/
     });
 </script>

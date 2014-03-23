@@ -45,7 +45,7 @@ class Validate extends Module{
      * @param string $name
      * @return boolean
      */
-    public function isMTableName($name){
+    public function isTableName($name){
         return !preg_match("/[^a-zA-Z0-9\$_]/", $name);
     }
 

@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <title>ZINGPHP | PHP Framework</title>
+        <title>ZingPHP | PHP Framework</title>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -76,6 +76,7 @@
                 float: left;
                 width: 100%;
                 padding: 100px 50px;
+                min-height: 300px;
             }
             nav a{
                 padding: 10px 20px;
@@ -95,6 +96,7 @@
             nav li{
                 float: left;
             }
+
             .content{
                 background-color: #ffffff;
                 padding: 100px 50px;
@@ -132,6 +134,7 @@
 
             .content.white{
                 background-color: #ffffff;
+                min-height: 300px;
             }
             .content.green{
                 background-color: #7dfd81;
@@ -218,7 +221,8 @@
                     <ul class="nav">
                         <li><a href="/">Home</a></li>
                         <li><a href="http://github.com/TheColorRed/Zing">Download</a></li>
-                        <li><a href="/docs">Documentation</a></li>
+                        <li><a href="/guide">User Guide</a></li>
+                        <li><a href="/ref">Reference</a></li>
                         <li><a href="/community">Community</a></li>
                     </ul>
                 </div>
