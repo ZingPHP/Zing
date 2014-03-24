@@ -14,8 +14,8 @@ $config = array(
             "databases" => array(
                 "localhost" => array(
                     "hostname" => "localhost",
-                    "username" => "root",
-                    "password" => "",
+                    "username" => "zingphp",
+                    "password" => "abc123",
                     "database" => "test"
                 )
             )

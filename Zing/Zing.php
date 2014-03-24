@@ -3,7 +3,7 @@
 /**
  * @property Modules\Input $input Functionality for global variables
  * @property Modules\Http $http Functionality to Http
- * @property Modules\Mysql $mysql Functionality to connect to databases
+ * @property Modules\DBO $dbo Functionality to connect to databases
  * @property Smarty $smarty Functionality for smarty templates
  * @property Modules\Form $form Functionality for forms and form validation
  * @property Modules\User $user Functionality to work with users
@@ -22,7 +22,7 @@ class Zing{
     public static $action = "main";
     public static $isAjax = false;
     protected
-            $db         = null,
+            $db         = array(),
             $host       = "",
             $root       = "",
             $pageExists = false,
@@ -35,7 +35,7 @@ class Zing{
             $config       = array(),
             $fullConfig   = array(),
             $modules      = array(
-                "mysql"    => false,
+                "dbo"      => false,
                 "input"    => false,
                 "http"     => false,
                 "smarty"   => false,
@@ -69,7 +69,6 @@ class Zing{
 
     public function __construct(){
         //$this->db   = (object)$this->db;
-        $this->db   = (object)array();
         $this->root = $_SERVER["DOCUMENT_ROOT"];
         if(isset($_GET["host"])){
             $this->host = preg_replace("/^www(.*?)\./", "", $_GET["host"]);
@@ -322,17 +321,29 @@ class Zing{
         // Setup Pirmary global databases
         if(isset($this->fullConfig["databases"]) && is_array($this->fullConfig["databases"])){
             foreach($this->fullConfig["databases"] as $name => $data){
-                $this->db->$name = $this->mysql->init($this->config);
-                $this->db->$name->setConnectionParams($data);
+                $this->db[$name] = $this->dbo->init($this->config);
+                $this->db[$name]->setConnectionParams($data);
             }
         }
         // Setup loacal database (duplicates override global databases)
         if(isset($this->config["databases"]) && is_array($this->config["databases"])){
             foreach($this->config["databases"] as $name => $data){
-                $this->db->$name = $this->mysql->init($this->config);
-                $this->db->$name->setConnectionParams($data);
+                $this->db[$name] = $this->dbo->init($this->config);
+                $this->db[$name]->setConnectionParams($data);
             }
         }
+    }
+
+    /**
+     *
+     * @param string $name
+     * @return \Modules\DBO
+     */
+    protected function dbo($name){
+        if(!array_key_exists($name, $this->db)){
+            throw new Exception("The database '$name' has not been defined.");
+        }
+        return $this->db[$name];
     }
 
 }

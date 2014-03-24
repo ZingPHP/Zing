@@ -2,31 +2,35 @@
 
 namespace Modules;
 
-class Mysql extends Module{
+class DBO extends \Modules\Module{
 
     private
             $hostname           = "",
             $username           = "",
             $password           = "",
             $database           = "",
+            $dsn                = "",
+            $port               = 3306,
             $db                 = null,
             $sql                = null;
     private $table_primary_keys = array();
 
     public function setConnectionParams($config){
+        $this->dsn      = isset($config["dsn"]) ? $config["dsn"] : "mysql";
         $this->hostname = isset($config["hostname"]) ? $config["hostname"] : "";
         $this->username = isset($config["username"]) ? $config["username"] : "";
         $this->password = isset($config["password"]) ? $config["password"] : "";
         $this->database = isset($config["username"]) ? $config["database"] : "";
+        $this->port     = isset($config["port"]) ? $config["port"] : 3306;
     }
 
     /**
-     * Initialize a mysql database object
+     * Initialize a database object
      * @param array $config
-     * @return \Mysql
+     * @return \Modules\DBO
      */
     public function init($config){
-        return new Mysql($config);
+        return new \Modules\DBO($config);
     }
 
     /**
@@ -39,7 +43,7 @@ class Mysql extends Module{
             return;
         }
         try{
-            $this->db = new PDO("mysql:dbname=$this->database;host=$this->hostname", $this->username, $this->password);
+            $this->db = new \PDO("$this->dsn:dbname=$this->database;host=$this->hostname;port=" . (int)$this->port, $this->username, $this->password);
             return $this;
         }catch(Exception $e){
             throw $e;
@@ -53,7 +57,7 @@ class Mysql extends Module{
             $this->bind($query, $params);
             $this->sql->execute();
             return true;
-        }catch(Exception $e){
+        }catch(\Exception $e){
             throw $e;
         }
     }
@@ -95,6 +99,21 @@ class Mysql extends Module{
     }
 
     /**
+     * Tests a table to see if a row exists.
+     * @param string $table Table Name
+     * @param string $filter Where clause
+     * @param array $params
+     * @return boolean
+     * @throws \Exception
+     */
+    public function rowExists($table, $filter, array $params = array()){
+        if($this->_validName($table)){
+            throw new \Exception("Invalid Table Name '$table'.");
+        }
+        return (bool)$this->getOne("select 1 from `$table` where $filter limit 1", $params);
+    }
+
+    /**
      * creates a multirow insert query
      * @param string $table   The table name
      * @param array $columns  Array of columns to use
@@ -107,10 +126,10 @@ class Mysql extends Module{
     public function insertMultiRow($table, array $columns, array $params, $ignore = false, $after = ""){
         $ncols = count($columns);
         if(!$this->_validName($table)){
-            throw new Exception("Invalid Table Name '$table'.");
+            throw new \Exception("Invalid Table Name '$table'.");
         }
         if((bool)$ignore && strlen($after) > 0){
-            throw new Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
+            throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
         }
 
         $ign = (bool)$ignore ? "ignore" : "";
@@ -125,7 +144,7 @@ class Mysql extends Module{
         }
         $sql .= implode(",", $data);
         $sql .= " $after";
-        $it = new RecursiveIteratorIterator(new RecursiveArrayIterator($params));
+        $it = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
         $p  = iterator_to_array($it, false);
         return $this->query($sql, $p);
     }
@@ -139,7 +158,7 @@ class Mysql extends Module{
      */
     public function getById($table, $id, $uniq = true){
         if(!$this->_validName($table)){
-            throw new Exception("Invalid Table Name '$table'.");
+            throw new \Exception("Invalid Table Name '$table'.");
         }
         $id     = (int)$id;
         $column = $this->getPrimary($table);
@@ -202,19 +221,19 @@ class Mysql extends Module{
         foreach($params as $key => $val){
             switch(gettype($val)){
                 case "boolean":
-                    $type = PDO::PARAM_BOOL;
+                    $type = \PDO::PARAM_BOOL;
                     break;
                 case "integer":
-                    $type = PDO::PARAM_INT;
+                    $type = \PDO::PARAM_INT;
                     break;
                 case "string":
-                    $type = PDO::PARAM_STR;
+                    $type = \PDO::PARAM_STR;
                     break;
                 case "null":
-                    $type = PDO::PARAM_NULL;
+                    $type = \PDO::PARAM_NULL;
                     break;
                 default:
-                    $type = PDO::PARAM_STR;
+                    $type = \PDO::PARAM_STR;
                     break;
             }
             $this->sql->bindValue($key, $val, $type);
@@ -239,10 +258,11 @@ class Mysql extends Module{
         if(array_key_exists($table, $this->table_primary_keys)){
             return $this->table_primary_keys[$table];
         }
-        if(!$this->validName($table)){
+        if(!$this->_validName($table)){
             return false;
         }
-        $key                              = $this->getOne("select COLUMN_NAME from information_schema.COLUMNS where COLUMN_KEY = 'pri' and TABLE_NAME = ? limit 1", array($table));
+        $key = $this->getOne("select COLUMN_NAME from information_schema.COLUMNS where COLUMN_KEY = 'pri' and TABLE_NAME = ? limit 1", array($table));
+
         $this->table_primary_keys[$table] = $key;
         return $key;
     }
