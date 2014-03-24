@@ -158,3 +158,22 @@ class Home extends Zing{
 
 }
 </pre>
+<hr />
+<a name="caching" id="caching"></a><h2>Caching</h2>
+<a name="caching-database-caching" id="caching-database-caching"></a><h3>Database Caching</h3>
+<pre>
+class Home extends Zing{
+
+    public function main(){
+
+        $users_cache = $this->cache->cache("test", 10, function(){
+            echo "&lt;p&gt;Caching Users...&lt;/p&gt;";
+            $users = $this->dbo("localhost")->getTable("users");
+            return $users->getItemsByFirstName("ryan");
+        });
+
+        var_dump($users_cache);
+    }
+
+}
+</pre>
