@@ -1,0 +1,1 @@
+<?php exit; ?>[{"user_id":"1","0":"1","username":"ryannaddy","1":"ryannaddy","firstname":"Ryan","2":"Ryan","lastname":"Naddy","3":"Naddy"},{"user_id":"2","0":"2","username":"rp","1":"rp","firstname":"Ryan","2":"Ryan","lastname":"Pitsenburger","3":"Pitsenburger"}]

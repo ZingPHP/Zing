@@ -50,6 +50,7 @@
     .nav-left ul > li > ul > li > a{
         padding-left: 40px;
         font-size: 15px;
+        border-radius: 0 !important;
     }
     pre{
         padding: 10px !important;
@@ -125,10 +126,10 @@
         if(!$(this).closest("ul").hasClass("sub-doc-item")){
             $(".sub-doc-item").slideUp("slow");
         }else{
-            $("html, body").scrollTop($($(this).attr('href')).offset().top + 50);
+            $("html, body").scrollTop($($(this).attr('href')).offset().top + 100);
             $('html, body').animate({
                 scrollTop: $($(this).attr('href')).offset().top
-            }, 200);
+            }, "fast");
         }
 
         $("ul.doc-nav a.selected").removeClass("selected");
@@ -161,8 +162,6 @@
             }
         });
     });
-
-
 
 </script>
 <!--<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>-->

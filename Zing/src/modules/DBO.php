@@ -4,16 +4,15 @@ namespace Modules;
 
 class DBO extends \Modules\Module{
 
-    private
-            $hostname           = "",
-            $username           = "",
-            $password           = "",
-            $database           = "",
-            $dsn                = "",
-            $port               = 3306,
-            $db                 = null,
-            $sql                = null;
-    private $table_primary_keys = array();
+    protected
+            $hostname = "",
+            $username = "",
+            $password = "",
+            $database = "",
+            $dsn      = "",
+            $port     = 3306,
+            $db       = null,
+            $sql      = null;
 
     public function setConnectionParams($config){
         $this->dsn      = isset($config["dsn"]) ? $config["dsn"] : "mysql";
@@ -48,6 +47,24 @@ class DBO extends \Modules\Module{
         }catch(Exception $e){
             throw $e;
         }
+    }
+
+    /**
+     * Creates a new Database Object Table
+     * @param string $table_name
+     * @return \Modules\Database\DBOTable
+     */
+    public function getTable($table_name){
+        $tbl = new \Modules\Database\DBOTable($table_name, $this->db, $this->config);
+        $tbl->setConnectionParams(array(
+            "dsn"      => $this->dsn,
+            "hostname" => $this->hostname,
+            "username" => $this->username,
+            "password" => $this->password,
+            "database" => $this->database,
+            "port"     => $this->port,
+        ));
+        return $tbl;
     }
 
     public function query($query, $params = array()){
@@ -96,74 +113,6 @@ class DBO extends \Modules\Module{
     public function getOne($query, array $params = array()){
         $this->query($query, $params);
         return $this->sql->fetchColumn(0);
-    }
-
-    /**
-     * Tests a table to see if a row exists.
-     * @param string $table Table Name
-     * @param string $filter Where clause
-     * @param array $params
-     * @return boolean
-     * @throws \Exception
-     */
-    public function rowExists($table, $filter, array $params = array()){
-        if($this->_validName($table)){
-            throw new \Exception("Invalid Table Name '$table'.");
-        }
-        return (bool)$this->getOne("select 1 from `$table` where $filter limit 1", $params);
-    }
-
-    /**
-     * creates a multirow insert query
-     * @param string $table   The table name
-     * @param array $columns  Array of columns to use
-     * @param array $params   Multilevel array of values
-     * @param string $ignore  Adds an 'ignore' to the insert query
-     * @param string $after   A final statment such as 'on duplicate key...'
-     * @return boolean
-     * @throws Exception
-     */
-    public function insertMultiRow($table, array $columns, array $params, $ignore = false, $after = ""){
-        $ncols = count($columns);
-        if(!$this->_validName($table)){
-            throw new \Exception("Invalid Table Name '$table'.");
-        }
-        if((bool)$ignore && strlen($after) > 0){
-            throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
-        }
-
-        $ign = (bool)$ignore ? "ignore" : "";
-
-        $sql  = "insert $ign into $table";
-        $sql .= " (" . implode(",", $columns) . ") ";
-        $sql .= " values ";
-        $data = array();
-        foreach($params as $p){
-            $this->_validMultiInsertValue($p, $ncols);
-            $data[] = "(" . implode(",", array_pad(array(), $ncols, "?")) . ")";
-        }
-        $sql .= implode(",", $data);
-        $sql .= " $after";
-        $it = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
-        $p  = iterator_to_array($it, false);
-        return $this->query($sql, $p);
-    }
-
-    /**
-     * Gets a list of items from a table based on the primary key
-     * @param string $table
-     * @param mixed $id
-     * @param boolean $uniq
-     * @return array|boolean
-     */
-    public function getById($table, $id, $uniq = true){
-        if(!$this->_validName($table)){
-            throw new \Exception("Invalid Table Name '$table'.");
-        }
-        $id     = (int)$id;
-        $column = $this->getPrimary($table);
-        $extra  = $uniq ? "limit 1" : "";
-        return $this->getAll("select * from $table where $column = ? $extra", array($id));
     }
 
     /**
@@ -245,26 +194,8 @@ class DBO extends \Modules\Module{
      * @param string $string
      * @return boolean
      */
-    private function _validName($string){
+    protected function _validName($string){
         return !preg_match("/[^a-zA-Z0-9\$_]/i", $string);
-    }
-
-    /**
-     * Gets the primary key of a table
-     * @param string $table
-     * @return string|boolean
-     */
-    private function getPrimary($table){
-        if(array_key_exists($table, $this->table_primary_keys)){
-            return $this->table_primary_keys[$table];
-        }
-        if(!$this->_validName($table)){
-            return false;
-        }
-        $key = $this->getOne("select COLUMN_NAME from information_schema.COLUMNS where COLUMN_KEY = 'pri' and TABLE_NAME = ? limit 1", array($table));
-
-        $this->table_primary_keys[$table] = $key;
-        return $key;
     }
 
 }

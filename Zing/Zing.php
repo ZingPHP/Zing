@@ -322,6 +322,9 @@ class Zing{
         if(isset($this->fullConfig["databases"]) && is_array($this->fullConfig["databases"])){
             foreach($this->fullConfig["databases"] as $name => $data){
                 $this->db[$name] = $this->dbo->init($this->config);
+                if(!isset($data["dsn"])){
+                    $data["dsn"] = "mysql";
+                }
                 $this->db[$name]->setConnectionParams($data);
             }
         }
@@ -329,6 +332,9 @@ class Zing{
         if(isset($this->config["databases"]) && is_array($this->config["databases"])){
             foreach($this->config["databases"] as $name => $data){
                 $this->db[$name] = $this->dbo->init($this->config);
+                if(!isset($data["dsn"])){
+                    $data["dsn"] = "mysql";
+                }
                 $this->db[$name]->setConnectionParams($data);
             }
         }

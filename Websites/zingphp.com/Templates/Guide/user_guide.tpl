@@ -65,6 +65,7 @@ class MyModule extends Module{
 <p>
     Modules should be placed in the directory: <code>Zing/src/modules</code>
 </p>
+<hr />
 <a name="databases" id="databases"></a><h2>Databases</h2>
 <a name="databases-connecting-to-a-database" id="databases-connecting-to-a-database"></a><h3>Connecting to a Database</h3>
 <p>
@@ -126,8 +127,8 @@ $config = array(
 class Home extends Zing{
 
     public function main(){
-        $user = $this->db->localhost->getById("users", 100);
-        print_r($user);
+        $users = $this->dbo("localhost")->getTable("users");
+        var_dump($users->getItemsByFirstName("ryan"));
     }
 
 }
@@ -136,5 +137,24 @@ class Home extends Zing{
     In our above example, we are connecting to the <code>localhost</code> database
     which was defined in our <code>$config</code> from the previous section
     (the global database). Next we are telling the db to look at the users table
-    and get the row where the primary key is <code>100</code>.
+    and get the row(s) <code>WHERE FirstName = 'ryan'</code>.
 </p>
+<blockquote>
+    <b>Note:</b> <code>FirstName</code> and <code>firstname</code> mean the same
+    thing on windows machines. On *nix machines they are two different things.
+</blockquote>
+<p>
+    If you need more of an "SQL" approach, there are some handy functions within
+    the DBO class to help you get data as well, take this code for example:
+</p>
+<pre>
+class Home extends Zing{
+
+    public function main(){
+        $localhost = $this->dbo("localhost");
+        $users = $localhost->getAll("select * from users where username = 'ryan'");
+        var_dump($users);
+    }
+
+}
+</pre>
