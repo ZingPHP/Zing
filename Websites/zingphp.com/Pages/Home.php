@@ -6,8 +6,12 @@ class Home extends Zing{
 
         $users = $this->cache->cache("test", 10, function(){
             echo "<p>Caching Users...</p>";
-            $users = $this->dbo("localhost")->getTable("users");
-            return $users->getItemsByFirstName("ryan");
+            try{
+                $users = $this->dbo("localhost")->getTable("users");
+                return $users->getItemsByUsername("ryannaddy");
+            }catch(\Exception $e){
+                echo $e->getMessage();
+            }
         });
 
         var_dump($users);
