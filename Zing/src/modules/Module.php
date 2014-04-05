@@ -5,19 +5,17 @@ namespace Modules;
 class Module implements \Iterator{
 
     public $config = array();
-    public $string = "";
-    public $int    = 0;
 
     public function __construct($config = array()){
         $this->config = $config;
     }
 
     public function __toString(){
-        return $this->string;
+        return ModuleShare::$string;
     }
 
     public function getString(){
-        return $this->string;
+        return ModuleShare::$string;
     }
 
     /**
@@ -27,7 +25,7 @@ class Module implements \Iterator{
      * @return \Module
      */
     public function defaultString($default = ""){
-        $this->string = (string)$default;
+        ModuleShare::$string = (string)$default;
         return $this;
     }
 
@@ -38,12 +36,12 @@ class Module implements \Iterator{
      * @return \Module
      */
     public function defaultInt($int){
-        $this->int = (int)$int;
+        ModuleShare::$int = (int)$int;
         return $this;
     }
 
     public function replace($find, $replace){
-        str_replace($find, $replace, $this->string);
+        str_replace($find, $replace, ModuleShare::$string);
         return $this;
     }
 
@@ -99,5 +97,7 @@ class ModuleShare{
 
     public static $array    = array();
     public static $position = 0;
+    public static $string   = "";
+    public static $int      = 0;
 
 }
