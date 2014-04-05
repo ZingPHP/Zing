@@ -157,6 +157,9 @@
             .arrow-down.green{
                 border-top: 50px solid #7dfd81;
             }
+            .arrow-down.blue{
+                border-top: 50px solid #7dcefd;
+            }
 
             .content.green h2{
                 color: #35802d;

@@ -19,7 +19,7 @@ class Cache extends \Modules\Module{
      * @return \Modules\Cache
      * @throws \Exception
      */
-    public function setCacheEngine($cache_to_use = self::FCACHE){
+    public function setEngine($cache_to_use = self::FCACHE){
         switch($cache_to_use){
             case self::FCACHE:
                 $this->cache = new \Modules\Cache\FCache();
@@ -53,12 +53,17 @@ class Cache extends \Modules\Module{
 
     public function delete($name){
         $this->_setCacheEngine();
-        return $this->cache->delete($name);
+        $name = $this->toArray($name);
+        foreach($name as $cache_name){
+            $this->cache->delete($cache_name);
+        }
+        return $this;
     }
 
-    public function destroyCache(){
+    public function destroy(){
         $this->_setCacheEngine();
-        return $this->cache->destroyCache();
+        $this->cache->destroyCache();
+        return $this;
     }
 
     public function cache($name, $ttl, $callback){

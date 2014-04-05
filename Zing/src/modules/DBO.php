@@ -23,6 +23,10 @@ class DBO extends \Modules\Module{
         $this->port     = isset($config["port"]) ? $config["port"] : 3306;
     }
 
+    public function __invoke(){
+        echo "here";
+    }
+
     /**
      * Initialize a database object
      * @param array $config
@@ -88,7 +92,9 @@ class DBO extends \Modules\Module{
      */
     public function getAll($query, array $params = array()){
         $this->query($query, $params);
-        return $this->sql->fetchAll();
+        $array = $this->sql->fetchAll(\PDO::FETCH_ASSOC);
+        $this->setArray($array);
+        return $this;
     }
 
     /**
@@ -100,7 +106,9 @@ class DBO extends \Modules\Module{
      */
     public function getRow($query, array $params = array()){
         $this->query($query, $params);
-        return $this->sql->fetch();
+        $array = $this->sql->fetch(\PDO::FETCH_ASSOC);
+        $this->setArray($array);
+        return $this->array;
     }
 
     /**
@@ -196,6 +204,11 @@ class DBO extends \Modules\Module{
      */
     protected function _validName($string){
         return !preg_match("/[^a-zA-Z0-9\$_]/i", $string);
+    }
+
+    protected function _getAll($query, array $params = array()){
+        $this->query($query, $params);
+        return $this->sql->fetchAll(\PDO::FETCH_ASSOC);
     }
 
 }

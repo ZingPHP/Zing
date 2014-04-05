@@ -158,21 +158,131 @@ class Home extends Zing{
 
 }
 </pre>
+<a name="databases-looping-through-results" id="databases-looping-through-results"></a><h3>Looping Through Results</h3>
+<p>
+    We can easily loop through the database results multiple ways; you can either
+    use the commonly used <code>foreach</code> construct built into php or you can
+    use ZingPHP's <code>each()</code> method, both ways work basically the same way.
+    So choose which ever method you feel more comfortable doing.
+</p>
+<pre>
+class Home extends Zing{
+
+    public function main(){
+        $users = $this->dbo("localhost")->getTable("users");
+
+        // Using ZingPHP's each() method:
+        $users->getItemsByFirstName("ryan")->each(function($row){
+            echo $row["firstname"] . " " . $row["lastname"] . "&lt;br /&gt;";
+        });
+
+        // Using PHP's built in foreach:
+        $rows  = $users->getItemsByFirstName("ryan");
+        foreach($rows as $row){
+            echo $row["firstname"] . " " . $row["lastname"] . "&lt;br /&gt;";
+        }
+    }
+
+}
+</pre>
 <hr />
 <a name="caching" id="caching"></a><h2>Caching</h2>
+<p>
+    Caching is a way of getting information quickly from a cache. For example say you need to
+    get the same information from the database constantly. Doing lots of queries on your database
+    can really slow down a website, so to solve this we can cache the data and get it from a cache.
+</p>
+<p>
+    ZingPHP supports multiple types of caching engines, and file caching. By default
+    ZingPHP uses file caching since not all servers have a caching engine.
+</p>
 <a name="caching-database-caching" id="caching-database-caching"></a><h3>Database Caching</h3>
+<p>
+    This snippet will get the latest <code>20</code> news items and cache it for <code>120</code> seconds
+    in a cache called <code>LatestNews</code>. Once <code>120</code> seconds is up, the next
+    person to load the page will re-cache <code>20</code> new news items.
+</p>
 <pre>
 class Home extends Zing{
 
     public function main(){
 
-        $users_cache = $this->cache->cache("test", 10, function(){
-            echo "&lt;p&gt;Caching Users...&lt;/p&gt;";
-            $users = $this->dbo("localhost")->getTable("users");
-            return $users->getItemsByFirstName("ryan");
+        $news = $this->cache->cache("LatestNews", 120, function(){
+            return $this->dbo("localhost")->getAll("
+                select * from news
+                where PostDate = curdate()
+                order by PostTime desc limit 20
+            ");
         });
 
-        var_dump($users_cache);
+        var_dump($news);
+    }
+
+}
+</pre>
+<p>
+    If you prefer to use another caching engine, you can always switch. To do
+    the exact same thing as above but with <code>APC</code>, you would use
+    <code>setEngine()</code> like this:
+</p>
+<pre>
+class Home extends Zing{
+
+    public function main(){
+
+        $news = $this->cache
+        ->setEngine(Cache::APC)->cache("LatestNews", 120, function(){
+            return $this->dbo("localhost")->getAll("
+                select * from news
+                where PostDate = curdate()
+                order by PostTime desc limit 20
+            ");
+        });
+
+        var_dump($news);
+    }
+
+}
+</pre>
+<p>
+    Some times you need to cache items that almost never change, such as a list of countries,
+    or your website's supported languages. It is vary rare that you need to check the database
+    one every request, and since it almost never changes, we can set it to never expire by setting
+    the second parameter to <code>null</code>.
+</p>
+<pre>
+class Home extends Zing{
+
+    public function main(){
+
+        $news = $this->cache->cache("Languages", null, function(){
+            return $this->dbo("localhost")->getAll("select * from languages");
+        });
+
+        var_dump($news);
+    }
+
+}
+</pre>
+<p>
+    When we use <code>null</code>, the only way to clear the cache is to manually delete it.
+    There are two ways to do this, we can either use <code>delete()</code> to delete selected
+    items, or we can use <code>destroy()</code> to clear all the items that are cached.
+</p>
+<pre>
+class Home extends Zing{
+
+    public function main(){
+
+        // Deletes just "Languages" from the cache
+        $this->cache->delete("Languages");
+
+        // Deletes "Languages" and "LatestNews" from the cache
+        $this->cache->delete(array("Languages", "LatestNews"));
+
+        // Deletes everything from the cache
+        $this->cache->destroy();
+
     }
 
 }

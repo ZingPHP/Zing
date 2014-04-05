@@ -187,7 +187,7 @@ class Zing{
             }
             $shell_loaded = true;
         }
-        if(is_file($header) && !$shell_loaded){
+        if(is_file($header) && is_file($main) && !$shell_loaded){
             $this->smarty->display($header);
         }
 
@@ -195,7 +195,7 @@ class Zing{
             $this->smarty->display($main);
         }
 
-        if(is_file($footer) && !$shell_loaded){
+        if(is_file($footer) && is_file($main) && !$shell_loaded){
             $this->smarty->display($footer);
         }
     }
