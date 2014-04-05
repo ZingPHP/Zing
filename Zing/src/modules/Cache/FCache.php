@@ -11,7 +11,7 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
 
     public function __construct($config = array()){
         parent::__construct($config);
-        $this->root = __DIR__ . str_replace("//", "/", "/../../cache");
+        $this->root = __DIR__ . str_replace("//", "/", "/../../../cache");
         if(!is_dir($this->root)){
             mkdir($this->root);
         }
