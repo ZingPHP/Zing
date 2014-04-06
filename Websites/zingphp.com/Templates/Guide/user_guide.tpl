@@ -128,7 +128,7 @@ class Home extends Zing{
 
     public function main(){
         $users = $this->dbo("localhost")->getTable("users");
-        var_dump($users->getItemsByFirstName("ryan"));
+        var_dump($users->getItemsByFirstName("ryan")->toArray());
     }
 
 }
@@ -153,7 +153,7 @@ class Home extends Zing{
     public function main(){
         $localhost = $this->dbo("localhost");
         $users = $localhost->getAll("select * from users where username = 'ryan'");
-        var_dump($users);
+        var_dump($users->toArray());
     }
 
 }

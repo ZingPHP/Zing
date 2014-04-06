@@ -50,7 +50,11 @@ class Module implements \Iterator{
      * @param mixed $value
      * @return array
      */
-    public function toArray($value){
+    public function toArray($value = null){
+        $nargs = func_num_args();
+        if($nargs === 0){
+            return ModuleShare::$array;
+        }
         if(is_array($value)){
             return $value;
         }
@@ -64,7 +68,12 @@ class Module implements \Iterator{
         return $this;
     }
 
+    /**
+     * Sets the shared array
+     * @param mixed $array
+     */
     public function setArray($array){
+        $array = $this->toArray($array);
         ModuleShare::$array = $array;
     }
 
