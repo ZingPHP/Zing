@@ -29,7 +29,7 @@ class MemCache extends \Modules\Module implements \Modules\Cache\ICache{
      */
     public function get($name){
         $this->connect();
-        $data = $this->memcache->get($name);
+        $data = $this->memcache->get($name, MEMCACHE_COMPRESSED);
         return $data["data"];
     }
 
@@ -43,7 +43,7 @@ class MemCache extends \Modules\Module implements \Modules\Cache\ICache{
         if($ttl === null){
             return false;
         }
-        $cache = $this->memcache->get($name);
+        $cache = $this->memcache->get($name, MEMCACHE_COMPRESSED);
         $time  = $cache["time"];
         return (time() >= ($time + $ttl));
     }
