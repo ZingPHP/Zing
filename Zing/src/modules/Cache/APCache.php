@@ -4,10 +4,21 @@ namespace Modules\Cache;
 
 class APCache extends \Modules\Module implements \Modules\Cache\ICache{
 
+    /**
+     * Gets an item from APC Cache
+     * @param string $name
+     * @return mixed
+     */
     public function get($name){
         return apc_fetch($name);
     }
 
+    /**
+     * Tests to see if an APC cache has expired
+     * @param string $name
+     * @param int $ttl
+     * @return boolean
+     */
     public function isExpired($name, $ttl){
         if($ttl === null){
             return false;
@@ -21,14 +32,28 @@ class APCache extends \Modules\Module implements \Modules\Cache\ICache{
         }
     }
 
+    /**
+     * Saves an item into APC cache
+     * @param string $name
+     * @param mixed $data
+     */
     public function put($name, $data){
         apc_store($name, $data);
     }
 
+    /**
+     * Deletes everything from APC cache
+     * @return bool
+     */
     public function destroy(){
-        apc_clear_cache("user");
+        return apc_clear_cache("user");
     }
 
+    /**
+     * Deletes an item from APC cache
+     * @param string $name
+     * @return bool
+     */
     public function delete($name){
         return apc_delete($name);
     }
