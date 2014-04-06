@@ -36,21 +36,42 @@ class Cache extends \Modules\Module{
         return $this;
     }
 
+    /**
+     * The data to cache
+     * @param string $name
+     * @param mixed $data
+     */
     public function put($name, $data){
         $this->_setCacheEngine();
         $this->cache->put($name, $data);
     }
 
+    /**
+     * Tests the cache to see if it has expired
+     * @param string $name
+     * @param int $ttl
+     * @return bool
+     */
     public function isExpired($name, $ttl){
         $this->_setCacheEngine();
         return $this->cache->isExpired($name, $ttl);
     }
 
+    /**
+     * Gets an item from the cache
+     * @param string $name
+     * @return mixed
+     */
     public function get($name){
         $this->_setCacheEngine();
         return $this->cache->get($name);
     }
 
+    /**
+     * Deletes an item or a list of items from the cache
+     * @param string|array $name
+     * @return \Modules\Cache
+     */
     public function delete($name){
         $this->_setCacheEngine();
         $name = $this->toArray($name);
@@ -60,12 +81,24 @@ class Cache extends \Modules\Module{
         return $this;
     }
 
+    /**
+     * Deletes everything that is cached
+     * @return \Modules\Cache
+     */
     public function destroy(){
         $this->_setCacheEngine();
         $this->cache->destroyCache();
         return $this;
     }
 
+    /**
+     * Uses a callback to cache the returned data on a timed interval
+     * @param string $name
+     * @param int $ttl
+     * @param callback $callback
+     * @return mixed
+     * @throws \Exception
+     */
     public function cache($name, $ttl, $callback){
         $this->_setCacheEngine();
         if(!is_callable($callback)){
@@ -78,6 +111,10 @@ class Cache extends \Modules\Module{
         return $this->get($name);
     }
 
+    /**
+     * sets the caching engine if one isn't set
+     * @return void
+     */
     protected function _setCacheEngine(){
         if($this->cache !== null){
             return;
