@@ -33,9 +33,9 @@ class Cache extends \Modules\Module{
                 $this->cache = new \Modules\Cache\APCache($this->config);
                 break;
             case self::MEMCACHE:
-                /* if(!function_exists("memcache_connect")){
-                  throw new \Exception("Memcache is currently not installed or enabled.");
-                  } */
+                if(!function_exists("memcache_connect")){
+                    throw new \Exception("Memcache is currently not installed or enabled.");
+                }
                 $this->cache = new \Modules\Cache\Memcache($this->config);
                 break;
             default:
