@@ -8,7 +8,9 @@ class Cache extends \Modules\Module{
     const MEMCACHE = 2;
     const APC      = 3;
 
-    protected $cache = null;
+    protected $cache        = null;
+    protected $memcacheHost = "localhost";
+    protected $memcachePort = 11211;
 
     /**
      * Sets the Caching engine to use. Valid Engines are:
@@ -22,13 +24,19 @@ class Cache extends \Modules\Module{
     public function setEngine($cache_to_use = self::FCACHE){
         switch($cache_to_use){
             case self::FCACHE:
-                $this->cache = new \Modules\Cache\FCache();
+                $this->cache = new \Modules\Cache\FCache($this->config);
                 break;
             case self::APC:
                 if(!function_exists("apc_store")){
                     throw new \Exception("APC is currently not installed or enabled.");
                 }
-                $this->cache = new \Modules\Cache\APCache();
+                $this->cache = new \Modules\Cache\APCache($this->config);
+                break;
+            case self::MEMCACHE:
+                /* if(!function_exists("memcache_connect")){
+                  throw new \Exception("Memcache is currently not installed or enabled.");
+                  } */
+                $this->cache = new \Modules\Cache\MemCache($this->config);
                 break;
             default:
                 throw new \Exception("Caching engine not supported.");
