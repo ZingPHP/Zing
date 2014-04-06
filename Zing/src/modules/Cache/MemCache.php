@@ -2,7 +2,7 @@
 
 namespace Modules\Cache;
 
-class MemCache extends \Modules\Module implements \Modules\Cache\ICache{
+class Memcache extends \Modules\Module implements \Modules\Cache\ICache{
 
     protected $host     = "localhost";
     protected $port     = 11211;

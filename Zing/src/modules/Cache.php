@@ -36,7 +36,7 @@ class Cache extends \Modules\Module{
                 /* if(!function_exists("memcache_connect")){
                   throw new \Exception("Memcache is currently not installed or enabled.");
                   } */
-                $this->cache = new \Modules\Cache\MemCache($this->config);
+                $this->cache = new \Modules\Cache\Memcache($this->config);
                 break;
             default:
                 throw new \Exception("Caching engine not supported.");
