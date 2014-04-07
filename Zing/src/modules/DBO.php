@@ -41,6 +41,7 @@ class DBO extends \Modules\Module{
         if($this->db !== null){
             return;
         }
+        echo "connecting...";
         try{
             $this->db = new \PDO("$this->dsn:dbname=$this->database;host=$this->hostname;port=" . (int)$this->port, $this->username, $this->password);
             return $this;
@@ -55,16 +56,7 @@ class DBO extends \Modules\Module{
      * @return \Modules\Database\DBOTable
      */
     public function getTable($table_name){
-        $tbl = new \Modules\Database\DBOTable($table_name, $this->db, $this->config);
-        $tbl->setConnectionParams(array(
-            "dsn"      => $this->dsn,
-            "hostname" => $this->hostname,
-            "username" => $this->username,
-            "password" => $this->password,
-            "database" => $this->database,
-            "port"     => $this->port,
-        ));
-        return $tbl;
+        return new \Modules\Database\DBOTable($table_name, $this->db, $this->config);
     }
 
     public function query($query, $params = array()){

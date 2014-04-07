@@ -10,7 +10,7 @@ class DBOTable extends \Modules\DBO{
     private $table_primary_keys = array();
     private $table;
 
-    function __construct($table_name, $db, $config){
+    public function __construct($table_name, $db, $config){
         $this->db = $db;
         if(!$this->_validName($table_name)){
             throw new \Exception("Invalid Table Name '$table_name'.");
@@ -30,6 +30,10 @@ class DBOTable extends \Modules\DBO{
         if(preg_match("/^getItemsBy(.+)/", $name, $matches)){
             return $this->_getByColumn($matches[1], $arguments[0]);
         }
+    }
+
+    public function getView(){
+        return new \Modules\Database\DBOView($this->table, $this->db, $this->config);
     }
 
     /**
@@ -62,7 +66,14 @@ class DBOTable extends \Modules\DBO{
         $sql .= " $after";
         $it = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
         $p  = iterator_to_array($it, false);
-        return $this->query($sql, $p);
+        $this->beginTransaction();
+        try{
+            $result = $this->query($sql, $p);
+            $this->commitTransaction();
+            return $result;
+        }catch(\Exception $e){
+            $this->rollBackTransaction();
+        }
     }
 
     /**
