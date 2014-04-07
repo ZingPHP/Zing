@@ -25,19 +25,19 @@ class Cache extends \Modules\Module{
         switch($cache_to_use){
             case self::FCACHE:
                 $this->cache = new \Modules\Cache\FCache($this->config);
-                break;
+                return $this->cache;
             case self::APC:
                 if(!function_exists("apc_store")){
                     throw new \Exception("APC is currently not installed or enabled.");
                 }
                 $this->cache = new \Modules\Cache\APCache($this->config);
-                break;
+                return $this->cache;
             case self::MEMCACHE:
                 if(!function_exists("memcache_connect")){
                     throw new \Exception("Memcache is currently not installed or enabled.");
                 }
                 $this->cache = new \Modules\Cache\Memcache($this->config);
-                break;
+                return $this->cache;
             default:
                 throw new \Exception("Caching engine not supported.");
         }

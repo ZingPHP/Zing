@@ -230,8 +230,9 @@ class Home extends Zing{
 
     public function main(){
 
-        $news = $this->cache
-        ->setEngine(Cache::APC)->cache("LatestNews", 120, function(){
+        // Set The Cache Engine To APC for the next caches
+        $this->cache->setEngine(Cache::APC);
+        $news = $this->cache->cache("LatestNews", 120, function(){
             return $this->dbo("localhost")->getAll("
                 select * from news
                 where PostDate = curdate()
@@ -244,6 +245,63 @@ class Home extends Zing{
 
 }
 </pre>
+<p>
+    If you decide at some point you want to switch to a different caching engine,
+    all you need to do is call <code>setEngine()</code>. Here are two different
+    ways to change between caching engines:
+</p>
+<pre>
+class Home extends Zing{
+
+    public function main(){
+
+        // Method 1:
+        //      Assign the cache to a variable that you can use whenever.
+        $apc    = $this->cache->setEngine(Cache::APC);
+        $fcache = $this->cache->setEngine();
+
+        $new_news = $apc->cache("LatestNews", 120, function(){
+            return $this->dbo("localhost")->getAll("
+                select * from news
+                where PostDate = curdate()
+                order by PostTime desc limit 20
+            ");
+        });
+        $pop_news = $fcache->cache("PopularNews", 120, function(){
+            // ...
+        });
+
+        // Method 2:
+        //      Calling setEngine will change your engine at that point
+        //      and it will only affect what comes after it.
+        $this->cache->setEngine(Cache::APC);
+        $news = $this->cache->cache("LatestNews", 120, function(){
+            return $this->dbo("localhost")->getAll("
+                select * from news
+                where PostDate = curdate()
+                order by PostTime desc limit 20
+            ");
+        });
+        // Uses APC
+        $news = $this->cache->cache("PopularNews", 120, function(){
+            // ...
+        });
+        // Anything after this will be file cached.
+        // APC will no longer accessible unless setEngine()
+        // is called again using APC.
+        $this->cache->setEngine(Cache::FCache);
+        $news = $this->cache->cache("Languages", null, function(){
+            // ...
+        });
+    }
+
+}
+</pre>
+<blockquote>
+    <b>Note:</b> Mixing the two methods together within one request can have
+    unexpected results. It is best to stick to one method per request. It is even
+    better to stick to one method per project.
+</blockquote>
 <p>
     Some times you need to cache items that almost never change, such as a list of countries,
     or your website's supported languages. It is vary rare that you need to check the database
