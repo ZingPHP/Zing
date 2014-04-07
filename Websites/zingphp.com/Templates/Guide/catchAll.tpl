@@ -93,7 +93,7 @@
                         <ul class="sub-doc-item" style="display: none;">
                             <li><a href="#databases-connecting-to-a-database">Connecting to a Database</a></li>
                             <li><a href="#databases-selecting-data">Selecting Data</a></li>
-                            <li><a href="#hello-world">Hello World!</a></li>
+                            <li><a href="#databases-looping-through-results">Looping Through Results</a></li>
                         </ul>
                     </li>
                     <li class="main-doc-item"><a href="#introduction">Caching</a>

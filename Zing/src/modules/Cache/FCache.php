@@ -2,7 +2,7 @@
 
 namespace Modules\Cache;
 
-class FCache extends \Modules\Module implements \Modules\Cache\ICache{
+class FCache extends \Modules\Cache implements \Modules\Cache\ICache{
 
     protected $root  = "";
     protected $cache = "/cache";
@@ -11,14 +11,14 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
 
     public function __construct($config = array()){
         parent::__construct($config);
-        $this->root = __DIR__ . str_replace("//", "/", "/../../cache");
+        $this->root = __DIR__ . str_replace("//", "/", "/../../../cache");
         if(!is_dir($this->root)){
             mkdir($this->root);
         }
     }
 
     /**
-     * Test to see if a cache has expired.
+     * Test to see if a file cache has expired
      * @param int $ttl Time in seconds
      * @return boolean
      */
@@ -36,7 +36,7 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
     }
 
     /**
-     * Set the content in the initialized cache replacing the old cache.
+     * Saves an item into file cache
      * @param mixed $content
      * @return boolean
      */
@@ -51,7 +51,7 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
     }
 
     /**
-     * Gets the content from the current initialized cache.
+     * Gets an item from file cache
      * @return mixed
      */
     public function get($cache){
@@ -64,7 +64,7 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
     }
 
     /**
-     * Deletes the current initialized cache.
+     * Deletes an item from file cache
      * @return boolean
      */
     public function delete($cache){
@@ -75,6 +75,10 @@ class FCache extends \Modules\Module implements \Modules\Cache\ICache{
         return false;
     }
 
+    /**
+     * Deletes everything from file cache
+     * @return \Modules\Cache\FCache
+     */
     public function destroy(){
         $files = glob($this->root . "/*.cache.php");
         foreach($files as $file){

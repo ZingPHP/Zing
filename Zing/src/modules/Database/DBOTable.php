@@ -28,8 +28,9 @@ class DBOTable extends \Modules\DBO{
     public function __call($name, $arguments){
         $matches = array();
         if(preg_match("/^getItemsBy(.+)/", $name, $matches)){
-            return $this->_getByColumn($matches[1], $arguments[0]);
+            $this->_getByColumn($matches[1], $arguments[0]);
         }
+        return $this;
     }
 
     public function getView(){
@@ -98,7 +99,9 @@ class DBOTable extends \Modules\DBO{
         $table  = $this->table;
         $column = $this->_getPrimary();
         $extra  = $uniq ? "limit 1" : "";
-        return $this->getAll("select * from $table where $column = ? $extra", array($id));
+        $array  = $this->_getAll("select * from $table where $column = ? $extra", array($id));
+        $this->setArray($array);
+        return $this;
     }
 
     /**
@@ -112,7 +115,8 @@ class DBOTable extends \Modules\DBO{
         if(!$this->_validName($column)){
             throw new \Exception("Invalid column format '$column'.");
         }
-        return $this->getAll("select * from `$this->table` where `$column` = ?", array($value));
+        $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+        $this->setArray($array);
     }
 
     /**

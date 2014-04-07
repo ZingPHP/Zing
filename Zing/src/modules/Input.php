@@ -34,17 +34,15 @@ class Input extends Module{
     public function get($key, $value = null){
         $nargs = func_num_args();
         if(!isset($_GET[$key]) && $nargs === 1){
-            return $this->string;
+            return ModuleShare::$string;
         }
         if($nargs === 2){
             $_GET[$key] = $value;
             return true;
         }elseif($nargs === 1 && isset($_GET[$key])){
-            /* $this->string = $_GET[$key];
-              return $this; */
             return $_GET[$key];
         }else{
-            return $this->string;
+            return ModuleShare::$string;
         }
     }
 
@@ -57,7 +55,7 @@ class Input extends Module{
     public function post($key, $value = null){
         $nargs = func_num_args();
         if(!isset($_POST[$key]) && $nargs === 1){
-            return "";
+            return ModuleShare::$string;
         }
         if($nargs === 2){
             $_POST[$key] = $value;
@@ -65,7 +63,7 @@ class Input extends Module{
         }elseif($nargs === 1){
             return $_POST[$key];
         }else{
-            return false;
+            return ModuleShare::$string;
         }
     }
 
@@ -78,7 +76,7 @@ class Input extends Module{
     public function server($key, $value = null){
         $nargs = func_num_args();
         if(!isset($_SERVER[$key]) && $nargs === 1){
-            return "";
+            return ModuleShare::$string;
         }
         if($nargs === 2){
             $_SERVER[$key] = $value;
@@ -86,7 +84,7 @@ class Input extends Module{
         }elseif($nargs === 1){
             return $_SERVER[$key];
         }else{
-            return false;
+            return ModuleShare::$string;
         }
     }
 
@@ -99,7 +97,7 @@ class Input extends Module{
     public function cookie($key, $value = null){
         $nargs = func_num_args();
         if(!isset($_COOKIE[$key]) && $nargs === 1){
-            return "";
+            return ModuleShare::$string;
         }
         if($nargs === 2){
             setcookie($key, $value);
@@ -107,7 +105,7 @@ class Input extends Module{
         }elseif($nargs === 1){
             return $_COOKIE[$key];
         }else{
-            return false;
+            return ModuleShare::$string;
         }
     }
 

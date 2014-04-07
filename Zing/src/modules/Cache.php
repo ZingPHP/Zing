@@ -8,7 +8,9 @@ class Cache extends \Modules\Module{
     const MEMCACHE = 2;
     const APC      = 3;
 
-    protected $cache = null;
+    protected $cache        = null;
+    protected $memcacheHost = "localhost";
+    protected $memcachePort = 11211;
 
     /**
      * Sets the Caching engine to use. Valid Engines are:
@@ -19,48 +21,92 @@ class Cache extends \Modules\Module{
      * @return \Modules\Cache
      * @throws \Exception
      */
-    public function setCacheEngine($cache_to_use = self::FCACHE){
+    public function setEngine($cache_to_use = self::FCACHE){
         switch($cache_to_use){
             case self::FCACHE:
-                $this->cache = new \Modules\Cache\FCache();
-                break;
+                $this->cache = new \Modules\Cache\FCache($this->config);
+                return $this->cache;
             case self::APC:
                 if(!function_exists("apc_store")){
                     throw new \Exception("APC is currently not installed or enabled.");
                 }
-                $this->cache = new \Modules\Cache\APCache();
-                break;
+                $this->cache = new \Modules\Cache\APCache($this->config);
+                return $this->cache;
+            case self::MEMCACHE:
+                if(!function_exists("memcache_connect")){
+                    throw new \Exception("Memcache is currently not installed or enabled.");
+                }
+                $this->cache = new \Modules\Cache\Memcache($this->config);
+                return $this->cache;
             default:
                 throw new \Exception("Caching engine not supported.");
         }
         return $this;
     }
 
+    /**
+     * The data to cache
+     * @param string $name
+     * @param mixed $data
+     */
     public function put($name, $data){
         $this->_setCacheEngine();
         $this->cache->put($name, $data);
     }
 
+    /**
+     * Tests the cache to see if it has expired
+     * @param string $name
+     * @param int $ttl
+     * @return bool
+     */
     public function isExpired($name, $ttl){
         $this->_setCacheEngine();
         return $this->cache->isExpired($name, $ttl);
     }
 
+    /**
+     * Gets an item from the cache
+     * @param string $name
+     * @return mixed
+     */
     public function get($name){
         $this->_setCacheEngine();
         return $this->cache->get($name);
     }
 
+    /**
+     * Deletes an item or a list of items from the cache
+     * @param string|array $name
+     * @return \Modules\Cache
+     */
     public function delete($name){
         $this->_setCacheEngine();
-        return $this->cache->delete($name);
+        $name = $this->toArray($name);
+        foreach($name as $cache_name){
+            $this->cache->delete($cache_name);
+        }
+        return $this;
     }
 
-    public function destroyCache(){
+    /**
+     * Deletes everything that is cached
+     * @return \Modules\Cache
+     */
+    public function destroy(){
         $this->_setCacheEngine();
-        return $this->cache->destroyCache();
+        $this->cache->destroyCache();
+        return $this;
     }
 
+    /**
+     * Uses a callback to cache the returned data on a timed interval
+     * @param string $name
+     * @param int $ttl
+     * @param callback $callback
+     * @return mixed
+     * @throws \Exception
+     */
     public function cache($name, $ttl, $callback){
         $this->_setCacheEngine();
         if(!is_callable($callback)){
@@ -73,6 +119,10 @@ class Cache extends \Modules\Module{
         return $this->get($name);
     }
 
+    /**
+     * sets the caching engine if one isn't set
+     * @return void
+     */
     protected function _setCacheEngine(){
         if($this->cache !== null){
             return;

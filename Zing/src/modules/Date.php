@@ -66,6 +66,10 @@ class Date extends Module{
         return $th + $tm + (int)$times[2];
     }
 
+    public function minToSec($minutes){
+        return $minutes * 60;
+    }
+
     /**
      * Tests to see if the date is a weekday (Monday - Friday)
      * @param date $date
