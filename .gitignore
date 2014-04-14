@@ -1,5 +1,5 @@
 templates_c/
 nbproject/
 Zing/cache/
-Websitees/*
-!Websites/zingphp.org
+Websites/*/
+!Websites/zingphp.org/
