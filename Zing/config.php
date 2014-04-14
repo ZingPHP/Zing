@@ -4,7 +4,7 @@ $config = array(
     "websites" => array(
         array(
             "name"      => "ZingPHP",
-            "host"      => "zingphp.com",
+            "host"      => "zingphp.org",
             "alias"     => array(
                 "zing.com",
                 "monkey.com",
