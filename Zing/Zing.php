@@ -167,6 +167,9 @@ class Zing{
      * @param class $class
      */
     protected function loadTemplates(){
+        if(!isset($this->config["host"])){
+            throw new Exception("Host Not Found");
+        }
         $templates = $this->root . "/Websites/" . $this->config["host"] . "/Templates/";
 
         $shell_loaded = false;
@@ -240,6 +243,9 @@ class Zing{
      * If a Page is not found, attempt to load the templates.
      */
     private function load(){
+        if(!isset($this->config["host"])){
+            throw new Exception("Host Not Found");
+        }
         $page_file = __DIR__ . "/../Websites/" . $this->config["host"] . "/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
             require_once $page_file;
