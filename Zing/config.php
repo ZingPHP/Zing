@@ -10,7 +10,6 @@ $config = array(
                 "monkey.com",
                 "172.21.20.75"
             ),
-            "path"      => "/Websites/zingphp.com",
             "databases" => array(
                 "localhost" => array(
                     "hostname" => "localhost",

@@ -167,7 +167,8 @@ class Zing{
      * @param class $class
      */
     protected function loadTemplates(){
-        $templates    = $this->root . $this->config["path"] . "/Templates/";
+        $templates = $this->root . "/Websites/" . $this->config["host"] . "/Templates/";
+
         $shell_loaded = false;
         $header       = $templates . $this->headerTpl . ".tpl";
         if(!empty($this->mainTpl)){
@@ -239,8 +240,7 @@ class Zing{
      * If a Page is not found, attempt to load the templates.
      */
     private function load(){
-        $path      = isset($this->config["path"]) ? $this->config["path"] : "";
-        $page_file = __DIR__ . "/.." . $path . "/Pages/" . ucfirst(Zing::$page) . ".php";
+        $page_file = __DIR__ . "/../Websites/" . $this->config["host"] . "/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
             require_once $page_file;
             Zing::$page = ucfirst(Zing::$page);
