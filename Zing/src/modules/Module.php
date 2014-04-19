@@ -14,7 +14,7 @@ class Module implements \Iterator{
         return ModuleShare::$string;
     }
 
-    public function getString(){
+    final public function getString(){
         return ModuleShare::$string;
     }
 
@@ -24,7 +24,7 @@ class Module implements \Iterator{
      * @param string $default
      * @return \Module
      */
-    public function defaultString($default = ""){
+    final public function defaultString($default = ""){
         ModuleShare::$string = (string)$default;
         return $this;
     }
@@ -35,12 +35,12 @@ class Module implements \Iterator{
      * @param int $int
      * @return \Module
      */
-    public function defaultInt($int){
+    final public function defaultInt($int){
         ModuleShare::$int = (int)$int;
         return $this;
     }
 
-    public function replace($find, $replace){
+    final public function replace($find, $replace){
         str_replace($find, $replace, ModuleShare::$string);
         return $this;
     }
@@ -50,7 +50,7 @@ class Module implements \Iterator{
      * @param mixed $value
      * @return array
      */
-    public function toArray($value = null){
+    final public function toArray($value = null){
         $nargs = func_num_args();
         if($nargs === 0){
             return ModuleShare::$array;
@@ -61,7 +61,7 @@ class Module implements \Iterator{
         return array($value);
     }
 
-    public function each($callback){
+    final public function each($callback){
         foreach(ModuleShare::$array as $key => $value){
             call_user_func_array($callback, array($value, $key));
         }
@@ -72,7 +72,7 @@ class Module implements \Iterator{
      * Sets the shared array
      * @param mixed $array
      */
-    public function setArray($array){
+    final public function setArray($array){
         $array = $this->toArray($array);
         ModuleShare::$array = $array;
     }
@@ -80,23 +80,23 @@ class Module implements \Iterator{
     //
     // Begin Iterator methods
     //
-    public function rewind(){
+    final public function rewind(){
         ModuleShare::$position = 0;
     }
 
-    public function current(){
+    final public function current(){
         return ModuleShare::$array[ModuleShare::$position];
     }
 
-    public function key(){
+    final public function key(){
         return $this->position;
     }
 
-    public function next(){
+    final public function next(){
         ++ModuleShare::$position;
     }
 
-    public function valid(){
+    final public function valid(){
         return isset(ModuleShare::$array[ModuleShare::$position]);
     }
 

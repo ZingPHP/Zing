@@ -17,7 +17,7 @@
  */
 class Zing{
 
-    // Static properties
+// Static properties
     public static $page   = "Home";
     public static $action = "main";
     public static $isAjax = false;
@@ -68,7 +68,7 @@ class Zing{
     }
 
     public function __construct(){
-        //$this->db   = (object)$this->db;
+//$this->db   = (object)$this->db;
         $this->root = $_SERVER["DOCUMENT_ROOT"];
         if(isset($_GET["host"])){
             $this->host = preg_replace("/^www(.*?)\./", "", $_GET["host"]);
@@ -82,7 +82,7 @@ class Zing{
      * @param string $key
      * @return mixed
      */
-    public function config($key){
+    final public function config($key){
         return Zing::$config[$key];
     }
 
@@ -90,7 +90,7 @@ class Zing{
      * Sets the current page (Name of the class).
      * @param string $page
      */
-    public function setPage($page){
+    final public function setPage($page){
         Zing::$page = $page;
     }
 
@@ -98,7 +98,7 @@ class Zing{
      * Sets the current action to run (Name of the method).
      * @param string $action
      */
-    public function setAction($action){
+    final public function setAction($action){
         Zing::$action = $action;
     }
 
@@ -106,7 +106,7 @@ class Zing{
      * Sets whether or not the current request is an ajax request.
      * @param boolean $is_ajax
      */
-    public function setIsAjax($is_ajax){
+    final public function setIsAjax($is_ajax){
         Zing::$isAjax = (bool)$is_ajax;
     }
 
@@ -114,12 +114,12 @@ class Zing{
      * Initialize the framework and website for usage.
      * @param array $config
      */
-    public function init($config){
+    final public function init($config){
         $this->fullConfig = $config;
         $this->getWebsiteConfig();
     }
 
-    public function run(){
+    final public function run(){
         try{
             if($this->load()){
                 $this->runPage();
@@ -136,21 +136,21 @@ class Zing{
     /**
      * Runs before the page call (should be overridden)
      */
-    public function runBefore(){
-        // To use this function override it in the Page's class
+    final public function runBefore(){
+// To use this function override it in the Page's class
     }
 
     /**
      * Runs after the page call (should be overridden)
      */
-    public function runAfter(){
-        // To use this function override it in the Page's class
+    final public function runAfter(){
+// To use this function override it in the Page's class
     }
 
     /**
      * Displays a 404 page. Error files are located in "Zing/Errors".
      */
-    public function notFound(){
+    final public function notFound(){
         header("HTTP/1.0 404 Not Found");
         header("Status: 404 Not Found");
         $not_found = $this->root . "/Zing/Errors/404.php";
@@ -166,7 +166,7 @@ class Zing{
      * Loads the template for the current page
      * @param class $class
      */
-    protected function loadTemplates(){
+    final protected function loadTemplates(){
         if(!isset($this->config["host"])){
             throw new Exception("Host Not Found");
         }
@@ -209,7 +209,7 @@ class Zing{
      * templates directory. By default Global/header.tpl is used.
      * @param string $tpl
      */
-    protected function setHeader($tpl){
+    final protected function setHeader($tpl){
         $this->headerTpl = $tpl;
     }
 
@@ -218,7 +218,7 @@ class Zing{
      * templates directory. By default Global/footer.tpl is used.
      * @param string $tpl
      */
-    protected function setFooter($tpl){
+    final protected function setFooter($tpl){
         $this->footerTpl = $tpl;
     }
 
@@ -226,7 +226,7 @@ class Zing{
      * Sets the location of the main template to use for the current file.
      * @param string $tpl
      */
-    protected function setTemplate($tpl){
+    final protected function setTemplate($tpl){
         $this->mainTpl = $tpl;
     }
 
@@ -234,7 +234,7 @@ class Zing{
      * Sets a shell template to use on the page
      * @param string $tpl
      */
-    protected function setShell($tpl){
+    final protected function setShell($tpl){
         $this->tplShell = $tpl;
     }
 
@@ -263,6 +263,15 @@ class Zing{
             }
         }
         return false;
+    }
+
+    final public function getWidget($widget, array $settings = array()){
+        $widget = new $widget();
+        $widget->setDefaultOptions();
+        if(!empty($settings)){
+            $widget->setOptions($settings);
+        }
+        $widget->run();
     }
 
     /**
@@ -324,7 +333,7 @@ class Zing{
      * This won't actually connect to the database
      */
     private function setupDatabases(){
-        // Setup Pirmary global databases
+// Setup Pirmary global databases
         if(isset($this->fullConfig["databases"]) && is_array($this->fullConfig["databases"])){
             foreach($this->fullConfig["databases"] as $name => $data){
                 $this->db[$name] = $this->dbo->init($this->config);
@@ -334,7 +343,7 @@ class Zing{
                 $this->db[$name]->setConnectionParams($data);
             }
         }
-        // Setup loacal database (duplicates override global databases)
+// Setup loacal database (duplicates override global databases)
         if(isset($this->config["databases"]) && is_array($this->config["databases"])){
             foreach($this->config["databases"] as $name => $data){
                 $this->db[$name] = $this->dbo->init($this->config);
@@ -351,7 +360,7 @@ class Zing{
      * @param string $name
      * @return \Modules\DBO
      */
-    protected function dbo($name){
+    final protected function dbo($name){
         if(!array_key_exists($name, $this->db)){
             throw new Exception("The database '$name' has not been defined.");
         }
