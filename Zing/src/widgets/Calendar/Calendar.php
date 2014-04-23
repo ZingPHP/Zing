@@ -38,7 +38,7 @@ class Calendar extends \Widgets\Widget implements \Widgets\IWidget{
             array("Sat", "Saturday")
         );
         $str   = "\n\t<tr>";
-        $key   = $this->settings["day"] == "short" ? 0 : 1;
+        $key   = $this->settings["day"] != "short" ? 1 : 0;
         for($i = 0; $i < 7; $i++){
             $str .= "\n\t\t<th>" . $names[$i][$key] . "</th>";
         }
