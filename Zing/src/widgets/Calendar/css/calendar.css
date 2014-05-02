@@ -1,0 +1,28 @@
+table.zing-calendar *{
+    box-sizing: border-box;
+}
+
+table.zing-calendar{
+    background-color: #ffffff;
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.zing-calendar th{
+    background-color: #7dcefd;
+}
+
+table.zing-calendar td{
+    height: 100px;
+    vertical-align: text-top;
+    padding: 5px;
+}
+
+table.zing-calendar td, table.zing-calendar th{
+    border: solid 1px #7dcefd;
+}
+
+table.zing-calendar td.selected{
+    background-color: #7dcefd;
+}

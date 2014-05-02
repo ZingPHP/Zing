@@ -6,7 +6,7 @@ interface IWidget{
 
     public function setOptions(array $settings);
 
-    public function run();
+    public function runWidget();
 
     public function setDefaultOptions();
 }

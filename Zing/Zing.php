@@ -18,23 +18,23 @@
 class Zing{
 
 // Static properties
-    public static $page   = "Home";
-    public static $action = "main";
-    public static $isAjax = false;
+    public static $page         = "Home";
+    public static $action       = "main";
+    public static $isAjax       = false;
     protected
-            $db         = array(),
-            $host       = "",
-            $root       = "",
-            $pageExists = false,
-            $namespace  = "";
+            $db               = array(),
+            $host             = "",
+            $root             = "",
+            $pageExists       = false,
+            $namespace        = "";
     private
-            $headerTpl    = "Global/header",
-            $footerTpl    = "Global/footer",
-            $mainTpl      = "",
-            $tplShell     = null,
-            $config       = array(),
-            $fullConfig   = array(),
-            $modules      = array(
+            $headerTpl          = "Global/header",
+            $footerTpl          = "Global/footer",
+            $mainTpl            = "",
+            $tplShell           = null,
+            $config             = array(),
+            $fullConfig         = array(),
+            $modules            = array(
                 "dbo"      => false,
                 "input"    => false,
                 "http"     => false,
@@ -49,6 +49,9 @@ class Zing{
                 "validate" => false,
                 "cache"    => false,
     );
+    public static
+            $widgets      = array(),
+            $widgetStyles = array();
 
     /**
      * Initiates modules on the fly.
@@ -129,7 +132,20 @@ class Zing{
             }
         }catch(Exception $e){
             try{
-                $this->loadTemplates();
+                $loaded = (bool)$this->loadTemplates();
+                if($loaded){
+                    echo "Loaded";
+                }else{
+                    foreach(Zing::$widgets as $widget){
+                        $w      = $widget["instance"];
+                        $getCss = (bool)$w->getSetting("loadCSS");
+                        if($getCss){
+                            foreach($widget["css"] as $style){
+                                echo $style;
+                            }
+                        }
+                    }
+                }
             }catch(Exception $e){
                 $this->notFound();
             }
@@ -194,17 +210,22 @@ class Zing{
             }
             $shell_loaded = true;
         }
+        $loadedTpl = false;
         if(is_file($header) && is_file($main) && !$shell_loaded){
             $this->smarty->display($header);
+            $loadedTpl = true;
         }
 
         if(is_file($main) && !$shell_loaded){
             $this->smarty->display($main);
+            $loadedTpl = true;
         }
 
         if(is_file($footer) && is_file($main) && !$shell_loaded){
             $this->smarty->display($footer);
+            $loadedTpl = true;
         }
+        return $loadedTpl;
     }
 
     /**
@@ -268,13 +289,27 @@ class Zing{
         return false;
     }
 
-    final public function getWidget($widget, array $settings = array()){
-        $widget = new $widget();
-        $widget->setDefaultOptions();
+    final public function getWidget($widgetName, array $settings = array()){
+        $widgetName = "\\Widgets\\" . str_replace("/", "\\", $widgetName);
+        $widget     = new $widgetName();
+        $opts       = $widget->setDefaultOptions();
+        $widget->setOptions($opts);
         if(!empty($settings)){
             $widget->setOptions($settings);
         }
-        $widget->run();
+        $widget->runWidget();
+        $wInfo       = new ReflectionClass($widget);
+        $css         = dirname($wInfo->getFilename()) . "/css/*.css";
+        $files       = glob($css);
+        $styleSheets = array();
+        foreach($files as $file){
+            $styleSheets[] = "<style>" . file_get_contents($file) . "</style>";
+        }
+        Zing::$widgets[] = array(
+            "css"      => $styleSheets,
+            "instance" => $widget
+        );
+        return $widget->getHtml();
     }
 
     /**
@@ -295,13 +330,14 @@ class Zing{
             $this->setAction("catchAll");
         }
         if($reflection->isPublic()){
-            $class            = new Zing::$page();
+            $class  = new Zing::$page();
             $class->initPage($this->config);
             Zing::$page = Zing::$page;
-            $action           = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+            $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
             $class->runBefore();
             call_user_func_array(array($class, Zing::$action), array());
             $class->runAfter();
+
             $this->pageExists = true;
             if(!Zing::$isAjax){
                 $class->loadTemplates();
