@@ -399,7 +399,7 @@ class Zing{
      * @param string $name
      * @return \Modules\DBO
      */
-    final protected function dbo($name){
+    final protected function getDbo($name){
         if(!array_key_exists($name, $this->db)){
             throw new Exception("The database '$name' has not been defined.");
         }

@@ -127,7 +127,7 @@ $config = array(
 class Home extends Zing{
 
     public function main(){
-        $users = $this->dbo("localhost")->getTable("users");
+        $users = $this->getDbo("localhost")->getTable("users");
         var_dump($users->getItemsByFirstName("ryan")->toArray());
     }
 
@@ -151,7 +151,7 @@ class Home extends Zing{
 class Home extends Zing{
 
     public function main(){
-        $localhost = $this->dbo("localhost");
+        $localhost = $this->getDbo("localhost");
         $users = $localhost->getAll("select * from users where username = 'ryan'");
         var_dump($users->toArray());
     }
@@ -169,7 +169,7 @@ class Home extends Zing{
 class Home extends Zing{
 
     public function main(){
-        $users = $this->dbo("localhost")->getTable("users");
+        $users = $this->getDbo("localhost")->getTable("users");
 
         // Using ZingPHP's each() method:
         $users->getItemsByFirstName("ryan")->each(function($row){
@@ -208,7 +208,7 @@ class Home extends Zing{
     public function main(){
 
         $news = $this->cache->cache("LatestNews", 120, function(){
-            return $this->dbo("localhost")->getAll("
+            return $this->getDbo("localhost")->getAll("
                 select * from news
                 where PostDate = curdate()
                 order by PostTime desc limit 20
@@ -233,7 +233,7 @@ class Home extends Zing{
         // Set The Cache Engine To APC for the next caches
         $this->cache->setEngine(Cache::APC);
         $news = $this->cache->cache("LatestNews", 120, function(){
-            return $this->dbo("localhost")->getAll("
+            return $this->getDbo("localhost")->getAll("
                 select * from news
                 where PostDate = curdate()
                 order by PostTime desc limit 20
@@ -261,7 +261,7 @@ class Home extends Zing{
         $fcache = $this->cache->setEngine();
 
         $new_news = $apc->cache("LatestNews", 120, function(){
-            return $this->dbo("localhost")->getAll("
+            return $this->getDbo("localhost")->getAll("
                 select * from news
                 where PostDate = curdate()
                 order by PostTime desc limit 20
@@ -276,7 +276,7 @@ class Home extends Zing{
         //      and it will only affect what comes after it.
         $this->cache->setEngine(Cache::APC);
         $news = $this->cache->cache("LatestNews", 120, function(){
-            return $this->dbo("localhost")->getAll("
+            return $this->getDbo("localhost")->getAll("
                 select * from news
                 where PostDate = curdate()
                 order by PostTime desc limit 20
@@ -314,7 +314,7 @@ class Home extends Zing{
     public function main(){
 
         $news = $this->cache->cache("Languages", null, function(){
-            return $this->dbo("localhost")->getAll("select * from languages");
+            return $this->getDbo("localhost")->getAll("select * from languages");
         });
 
         var_dump($news);
