@@ -1,4 +1,7 @@
 <h2>Core</h2>
+<p>
+    The core are the core components to make Zing work the way it works.
+</p>
 <div class="toc">
     <ul>
         <li><a href="">Zing::__construct()</a></li>

@@ -1,4 +1,7 @@
-<h2>DBO &ndash; Database Objects</h2>
+<h2>DBO <small>Database Objects</small></h2>
+<p>
+    The DBO module allows Zing to connect to a database and make queries.
+</p>
 <div class="toc">
     <ul>
         <li><a href="#beginTransaction()">DBO::beginTransaction()</a></li>

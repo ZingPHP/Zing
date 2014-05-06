@@ -1,4 +1,7 @@
 <h2>Cache</h2>
+<p>
+    The Cache module allows Zing to cache data to a caching engine.
+</p>
 <div class="toc">
     <ul>
         <li><a href="#cache()">Cache::cache()</a></li>

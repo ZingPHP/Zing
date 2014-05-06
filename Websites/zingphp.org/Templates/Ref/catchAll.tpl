@@ -106,6 +106,7 @@
                 <div class="col-sm-3 nav-left">
                     <ul class="doc-nav">
                         <li><a href="/ref/core">Core</a></li>
+                        <li><a href="/ref/module" style="border-bottom: solid 1px #ccc;">Module</a></li>
                         <li><a href="/ref/cache">Cache</a></li>
                         <li><a href="/ref/dbo">DBO</a></li>
                         <li><a href="/ref/date">Date</a></li>
