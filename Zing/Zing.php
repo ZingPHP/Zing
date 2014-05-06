@@ -94,7 +94,8 @@ class Zing{
      * @param string $page
      */
     final public function setPage($page){
-        if(empty($page) || $page == "/"){
+        $page = ltrim($page, "/");
+        if(empty($page)){
             $page = "Home";
         }
         Zing::$page = $page;
