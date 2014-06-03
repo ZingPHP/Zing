@@ -135,7 +135,7 @@ class Zing{
             try{
                 $loaded = (bool)$this->loadTemplates();
                 if($loaded){
-                    echo "Loaded";
+                    //echo "Loaded";
                 }else{
                     foreach(Zing::$widgets as $widget){
                         $w      = $widget["instance"];
@@ -190,7 +190,7 @@ class Zing{
         if(!isset($this->config["host"])){
             throw new Exception("Host Not Found");
         }
-        $templates = $this->root . "/Websites/" . $this->config["host"] . "/Templates/";
+        $templates = $this->root . "/Websites/Templates/";
 
         $shell_loaded = false;
         $header       = $templates . $this->headerTpl . ".tpl";
@@ -271,7 +271,11 @@ class Zing{
         if(!isset($this->config["host"])){
             throw new Exception("Host Not Found");
         }
-        $page_file = __DIR__ . "/../Websites/" . $this->config["host"] . "/Pages/" . ucfirst(Zing::$page) . ".php";
+        if(isset($this->config["redirect"])){
+            Zing::$page = isset($this->config["redirect"]["page"]) ? $this->config["redirect"]["page"] : Zing::$page;
+            Zing::$action = isset($this->config["redirect"]["action"]) ? $this->config["redirect"]["action"] : Zing::$action;
+        }
+        $page_file = __DIR__ . "/../Websites/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
             require_once $page_file;
             Zing::$page = ucfirst(Zing::$page);
