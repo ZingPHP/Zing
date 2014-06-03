@@ -86,7 +86,7 @@
         font-weight: bold;
         font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
     }
-    .toc p span:last-child{
+    .toc p span:last-child:not(:first-child){
         display: block;
         padding-left: 50px;
 
