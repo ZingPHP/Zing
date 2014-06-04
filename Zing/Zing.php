@@ -272,8 +272,8 @@ class Zing{
             throw new Exception("Host Not Found");
         }
         if(isset($this->config["redirect"])){
-            Zing::$page = isset($this->config["redirect"]["page"]) ? $this->config["redirect"]["page"] : Zing::$page;
-            Zing::$action = isset($this->config["redirect"]["action"]) ? $this->config["redirect"]["action"] : Zing::$action;
+            Zing::$page = isset($this->config["route"]["page"]) ? $this->config["route"]["page"] : Zing::$page;
+            Zing::$action = isset($this->config["route"]["action"]) ? $this->config["route"]["action"] : Zing::$action;
         }
         $page_file = __DIR__ . "/../Websites/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
