@@ -14,12 +14,14 @@
  * @property Modules\Date $date Functionality to access dates
  * @property Modules\Validate $validate Functionality to access dates
  * @property Modules\Cache $cache Functionality to access dates
+ * @property Modules\Twitter $twitter Twitter Accessability
  */
 class Zing{
 
 // Static properties
     public static $page         = "Home";
     public static $action       = "main";
+    public static $params       = array();
     public static $isAjax       = false;
     protected
             $db               = array(),
@@ -48,6 +50,7 @@ class Zing{
                 "date"     => false,
                 "validate" => false,
                 "cache"    => false,
+                "twitter"  => false,
     );
     public static
             $widgets      = array(),
@@ -94,11 +97,11 @@ class Zing{
      * @param string $page
      */
     final public function setPage($page){
-        $page = ltrim($page, "/");
-        if(empty($page)){
+        if(empty($page) || $page == "/"){
             $page = "Home";
         }
-        Zing::$page = $page;
+        $_GET["page"] = $page;
+        Zing::$page = trim($page, "/");
     }
 
     /**
@@ -106,6 +109,7 @@ class Zing{
      * @param string $action
      */
     final public function setAction($action){
+        $_GET["action"] = $action;
         Zing::$action = $action;
     }
 
@@ -153,17 +157,67 @@ class Zing{
         }
     }
 
+    final public function setRoute($path){
+        if(isset($this->config["route"])){
+            return;
+        }
+        $routes = $this->config["routes"];
+        $route  = explode("/", trim($path, "/"));
+        foreach($routes as $rt){
+            $testRt = explode("/", trim($rt, "/"));
+            $params = array();
+            $match  = true;
+            for($i = 0; $i < count($testRt); $i++){
+                $is_param = preg_match("/^@/", $testRt[$i]);
+                if(!$is_param && isset($route[$i]) && $route[$i] == $testRt[$i]){
+                    /* if($i == 0){
+                      $params["page"] = $route[$i];
+                      $this->setPage($route[$i]);
+                      }elseif($i == 1){
+                      $params["action"] = $route[$i];
+                      $this->setAction($route[$i]);
+                      } */
+                    continue;
+                }elseif($is_param && isset($route[$i])){
+                    $params[preg_replace("/@/", "", $testRt[$i], 1)] = $route[$i];
+                }else{
+                    $match  = false;
+                    $params = array();
+                    break;
+                }
+            }
+            if($match){
+                break;
+            }
+        }
+        if(empty($params)){
+            $count   = 0;
+            preg_replace("/^ajax\//i", "", $path, -1, $count);
+            $is_ajax = (bool)$count;
+            $params  = explode("/", trim($path, "/"));
+            $this->setPage(isset($params[0]) ? $params[0] : "Home");
+            $this->setAction(isset($params[1]) ? $params[1] : "main");
+            $this->setIsAjax($is_ajax);
+        }
+        //var_dump($_GET, $params);
+        $_GET = array_merge($_GET, $params);
+    }
+
+    final public function linkRoutes(array $links = array()){
+        $query = 1;
+    }
+
     /**
      * Runs before the page call (should be overridden)
      */
-    final public function runBefore(){
+    public function runBefore(){
 // To use this function override it in the Page's class
     }
 
     /**
      * Runs after the page call (should be overridden)
      */
-    final public function runAfter(){
+    public function runAfter(){
 // To use this function override it in the Page's class
     }
 
@@ -271,7 +325,7 @@ class Zing{
         if(!isset($this->config["host"])){
             throw new Exception("Host Not Found");
         }
-        if(isset($this->config["redirect"])){
+        if(isset($this->config["route"])){
             Zing::$page = isset($this->config["route"]["page"]) ? $this->config["route"]["page"] : Zing::$page;
             Zing::$action = isset($this->config["route"]["action"]) ? $this->config["route"]["action"] : Zing::$action;
         }
@@ -404,7 +458,7 @@ class Zing{
      * @param string $name
      * @return \Modules\DBO
      */
-    final protected function getDbo($name){
+    final protected function dbo($name){
         if(!array_key_exists($name, $this->db)){
             throw new Exception("The database '$name' has not been defined.");
         }
@@ -430,12 +484,12 @@ spl_autoload_register(function($class){
         require_once $file;
         return;
     }
-    $file = __DIR__ . "/src/plugins/$class.php";
+    $file = __DIR__ . "/src/Plugins/$class.php";
     if(is_file($file)){
         require_once $file;
         return;
     }
-    $file = __DIR__ . "/src/modules/Smarty/$class.class.php";
+    $file = __DIR__ . "/src/Modules/Smarty/$class.class.php";
     if(is_file($file)){
         require_once $file;
     }
