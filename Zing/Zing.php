@@ -139,7 +139,7 @@ class Zing{
             try{
                 $loaded = (bool)$this->loadTemplates();
                 if($loaded){
-                    //echo "Loaded";
+                    echo "Loaded";
                 }else{
                     foreach(Zing::$widgets as $widget){
                         $w      = $widget["instance"];
@@ -179,15 +179,20 @@ class Zing{
                       } */
                     continue;
                 }elseif($is_param && isset($route[$i])){
-                    $params[preg_replace("/@/", "", $testRt[$i], 1)] = $route[$i];
+                    $v          = preg_replace("/@/", "", $testRt[$i], 1);
+                    $params[$v] = $route[$i];
+                    if($v == "page"){
+                        $this->setPage($route[$i]);
+                    }elseif($v == "action"){
+                        $this->setAction($route[$i]);
+                    }
                 }else{
-                    $match  = false;
                     $params = array();
                     break;
                 }
             }
             if($match){
-                break;
+                return;
             }
         }
         if(empty($params)){
