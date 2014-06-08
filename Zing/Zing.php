@@ -256,7 +256,7 @@ class Zing{
         if(!empty($this->mainTpl)){
             $main = $templates . $this->mainTpl . ".tpl";
         }else{
-            $main = $templates . Zing::$page . "/" . Zing::$action . ".tpl";
+            $main = $templates . ucfirst(Zing::$page) . "/" . Zing::$action . ".tpl";
         }
         if(!is_file($main) && !$this->pageExists){
             throw new Exception("Template Not Found.");
