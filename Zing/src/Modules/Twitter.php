@@ -1,5 +1,8 @@
 <?php
 
+use Modules\Module;
+use Modules\Twitter\TwitterOAuth;
+
 namespace Modules;
 
 class Twitter extends Module{
@@ -9,10 +12,10 @@ class Twitter extends Module{
     /**
      * Sets initialization data
      * @param array $config
-     * @return \Modules\Twitter\TwitterOAuth
+     * @return TwitterOAuth
      */
     public function init(array $config){
-        $this->oauth = new \Modules\Twitter\TwitterOAuth($config);
+        $this->oauth = new TwitterOAuth($config);
         return $this->oauth;
     }
 

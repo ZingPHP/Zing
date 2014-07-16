@@ -1,5 +1,7 @@
 <?php
 
+use Modules\Module;
+
 namespace Modules;
 
 class File extends Module{

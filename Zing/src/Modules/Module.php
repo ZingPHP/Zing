@@ -1,8 +1,10 @@
 <?php
 
+use Modules\ModuleShare;
+
 namespace Modules;
 
-class Module implements \Iterator{
+class Module implements Iterator{
 
     public $config = array();
 

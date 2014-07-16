@@ -1,5 +1,9 @@
 <?php
 
+use Modules\Form;
+use Modules\FormItem;
+use Modules\Module;
+
 namespace Modules;
 
 class Form extends Module{

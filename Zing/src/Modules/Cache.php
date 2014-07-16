@@ -2,7 +2,13 @@
 
 namespace Modules;
 
-class Cache extends \Modules\Module{
+use Exception;
+use Modules\Cache\APCache;
+use Modules\Cache\FCache;
+use Modules\Cache\Memcache;
+use Modules\Module;
+
+class Cache extends Module{
 
     const FCACHE   = 1;
     const MEMCACHE = 2;
@@ -18,25 +24,25 @@ class Cache extends \Modules\Module{
      * MEMCACHE = MemCache
      * APC      = PHP's APC
      * @param int $cache_to_use
-     * @return \Modules\Cache
+     * @return Cache
      * @throws \Exception
      */
     public function setEngine($cache_to_use = self::FCACHE){
         switch($cache_to_use){
             case self::FCACHE:
-                $this->cache = new \Modules\Cache\FCache($this->config);
+                $this->cache = new FCache($this->config);
                 return $this->cache;
             case self::APC:
                 if(!function_exists("apc_store")){
-                    throw new \Exception("APC is currently not installed or enabled.");
+                    throw new Exception("APC is currently not installed or enabled.");
                 }
-                $this->cache = new \Modules\Cache\APCache($this->config);
+                $this->cache = new APCache($this->config);
                 return $this->cache;
             case self::MEMCACHE:
                 if(!function_exists("memcache_connect")){
-                    throw new \Exception("Memcache is currently not installed or enabled.");
+                    throw new Exception("Memcache is currently not installed or enabled.");
                 }
-                $this->cache = new \Modules\Cache\Memcache($this->config);
+                $this->cache = new Memcache($this->config);
                 return $this->cache;
             default:
                 throw new \Exception("Caching engine not supported.");
@@ -78,7 +84,7 @@ class Cache extends \Modules\Module{
     /**
      * Deletes an item or a list of items from the cache
      * @param string|array $name
-     * @return \Modules\Cache
+     * @return Cache
      */
     public function delete($name){
         $this->_setCacheEngine();
@@ -91,7 +97,7 @@ class Cache extends \Modules\Module{
 
     /**
      * Deletes everything that is cached
-     * @return \Modules\Cache
+     * @return Cache
      */
     public function destroy(){
         $this->_setCacheEngine();
@@ -105,12 +111,12 @@ class Cache extends \Modules\Module{
      * @param int $ttl
      * @param callback $callback
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function cache($name, $ttl, $callback){
         $this->_setCacheEngine();
         if(!is_callable($callback)){
-            throw new \Exception("Paramater 3 must be a callable function.");
+            throw new Exception("Paramater 3 must be a callable function.");
         }
         if($this->isExpired($name, $ttl)){
             $data = call_user_func($callback);

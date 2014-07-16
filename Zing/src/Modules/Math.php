@@ -1,5 +1,8 @@
 <?php
 
+use Modules\Math;
+use Modules\Module;
+
 namespace Modules;
 
 class Math extends Module{

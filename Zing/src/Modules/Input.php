@@ -1,5 +1,8 @@
 <?php
 
+use Modules\Module;
+use Modules\ModuleShare;
+
 namespace Modules;
 
 class Input extends Module{

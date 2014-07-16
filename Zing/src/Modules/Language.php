@@ -1,5 +1,7 @@
 <?php
 
+use Modules\Module;
+
 /**
  *
  * @author Ryan Naddy <rnaddy@corp.acesse.com>
