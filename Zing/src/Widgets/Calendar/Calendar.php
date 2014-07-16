@@ -2,7 +2,10 @@
 
 namespace Widgets\Calendar;
 
-class Calendar extends \Widgets\Widget implements \Widgets\IWidget{
+use Widgets\IWidget,
+    Widgets\Widget;
+
+class Calendar extends Widget implements IWidget{
 
     public function setDefaultOptions(){
         return array(
