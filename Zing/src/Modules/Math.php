@@ -6,6 +6,16 @@ class Math extends Module{
 
     const miles      = true;
     const kilometers = true;
+// US
+    const mile       = "mile";
+    const yard       = "yard";
+    const foot       = "foot";
+    const inch       = "inch";
+// Metric
+    const kilometer  = "kilometer";
+    const meter      = "meter";
+    const centimeter = "centimeter";
+    const milimeter  = "milimeter";
 
     /**
      * Calculates the area of a triangle
@@ -104,6 +114,63 @@ class Math extends Module{
 
     public function lerp2($v0, $v1, $t){
         return $v0 + ($v1 - $v0) * $t;
+    }
+
+    public function toFoot($from, $amount){
+        return $this->_distance($from, Math::foot, $amount);
+    }
+
+    protected function _distance($from, $to, $amount){
+        $fromInches = $amount;
+        $toInches   = $amount;
+        if($from != Math::inch){
+            $fromInches = $this->_toInch($from, $amount);
+            $toInches   = $this->_toInch($to, $amount);
+        }
+        switch($to){
+            case Math::inch:
+                return $fromInches;
+            case Math::foot:
+                return $fromInches / 12;
+            case Math::mile:
+                return $fromInches / 63360;
+            case Math::centimeter:
+                return $fromInches / 2.54;
+        }
+    }
+
+    protected function _toInch($type, $amount){
+        switch($type){
+            case Math::foot:
+                return $amount * 12;
+            case Math::yard:
+                return $amount * 36;
+            case Math::mile:
+                return $amount * 63360;
+            case Math::centimeter:
+                return $amount / 2.54;
+            case Math::meter:
+                return $amount * 39.3701;
+            case Math::kilometer:
+                return $amount * 39370.1;
+        }
+    }
+
+    protected function _convertInch($to, $amount){
+        switch($to){
+            case Math::foot:
+                return $amount / 12;
+            case Math::yard:
+                return $amount / 36;
+            case Math::mile:
+                return $amount / 63360;
+            case Math::centimeter:
+                return $amount * 2.54;
+            case Math::meter:
+                return $amount * 39.3701;
+            case Math::kilometer:
+                return $amount * 39370.1;
+        }
     }
 
 }

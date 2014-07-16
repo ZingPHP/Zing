@@ -2,10 +2,15 @@
 
 namespace Modules\Database;
 
+use Modules\DBO,
+    Exception,
+    Modules\Database\DBOView,
+    RecursiveIteratorIterator;
+
 /**
  * @method array getItemsBy*() getItemsBy*(mixed $value) Gets items from the table by column name
  */
-class DBOTable extends \Modules\DBO{
+class DBOTable extends DBO{
 
     private $table_primary_keys = array();
     private $table;
@@ -13,7 +18,7 @@ class DBOTable extends \Modules\DBO{
     public function __construct($table_name, $db, $config){
         $this->db = $db;
         if(!$this->_validName($table_name)){
-            throw new \Exception("Invalid Table Name '$table_name'.");
+            throw new Exception("Invalid Table Name '$table_name'.");
         }
         $this->table = $table_name;
         parent::__construct($config);
@@ -34,7 +39,7 @@ class DBOTable extends \Modules\DBO{
     }
 
     public function getView(){
-        return new \Modules\Database\DBOView($this->table, $this->db, $this->config);
+        return new DBOView($this->table, $this->db, $this->config);
     }
 
     /**
@@ -50,7 +55,7 @@ class DBOTable extends \Modules\DBO{
         $ncols = count($columns);
         $table = $this->table;
         if((bool)$ignore && strlen($after) > 0){
-            throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
+            throw new Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
         }
 
         $ign = (bool)$ignore ? "ignore" : "";
@@ -65,14 +70,14 @@ class DBOTable extends \Modules\DBO{
         }
         $sql .= implode(",", $data);
         $sql .= " $after";
-        $it = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
+        $it = new RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
         $p  = iterator_to_array($it, false);
         $this->beginTransaction();
         try{
             $result = $this->query($sql, $p);
             $this->commitTransaction();
             return $result;
-        }catch(\Exception $e){
+        }catch(Exception $e){
             $this->rollBackTransaction();
         }
     }
@@ -113,7 +118,7 @@ class DBOTable extends \Modules\DBO{
      */
     protected function _getByColumn($column, $value){
         if(!$this->_validName($column)){
-            throw new \Exception("Invalid column format '$column'.");
+            throw new Exception("Invalid column format '$column'.");
         }
         $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
         $this->setArray($array);

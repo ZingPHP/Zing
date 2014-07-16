@@ -3,7 +3,8 @@
 namespace Modules\Cache;
 
 use Modules\Cache,
-    Modules\Cache\ICache;
+    Modules\Cache\ICache,
+    Memcache;
 
 class Memcache extends Cache implements ICache{
 
@@ -21,7 +22,7 @@ class Memcache extends Cache implements ICache{
         if(isset($this->config["memcache"]["port"])){
             $this->port = $this->config["memcache"]["port"];
         }
-        $this->memcache = new \Memcache();
+        $this->memcache = new Memcache();
         $this->memcache->connect($this->host, $this->port);
     }
 

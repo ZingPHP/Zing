@@ -2,6 +2,8 @@
 
 namespace Modules\Database;
 
+use Modules\Database\DBOFilter;
+
 class DBOView extends \Modules\Database\DBOTable{
 
     public function __construct($table_name, $db, $config){
@@ -12,7 +14,7 @@ class DBOView extends \Modules\Database\DBOTable{
         parent::__construct($table_name, $db, $config);
     }
 
-    public function getTable(\Modules\Database\DBOFilter $filter){
+    public function getTable(DBOFilter $filter){
 
     }
 
