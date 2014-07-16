@@ -2,8 +2,8 @@
 
 namespace Widgets\Calendar;
 
-use Widgets\IWidget,
-    Widgets\Widget;
+use Widgets\IWidget;
+use Widgets\Widget;
 
 class Calendar extends Widget implements IWidget{
 

@@ -2,7 +2,7 @@
 
 namespace Widgets;
 
-class Widget extends \Zing{
+class Widget extends Zing{
 
     protected $html     = "";
     protected $settings = array(
