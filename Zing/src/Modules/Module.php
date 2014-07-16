@@ -1,8 +1,8 @@
 <?php
 
-use Modules\ModuleShare;
-
 namespace Modules;
+
+use Iterator;
 
 class Module implements Iterator{
 
