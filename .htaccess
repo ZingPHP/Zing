@@ -3,7 +3,7 @@ RewriteBase /
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.+)$ /index.php?path=$1 [L]
-rewrite ^(.+)$ /index.php?path=$1;
+#rewrite ^(.+)$ /index.php?path=$1;
 
 ##########################
 # Older versions of Zing #

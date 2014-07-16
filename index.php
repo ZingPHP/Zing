@@ -29,7 +29,5 @@ require_once __DIR__ . "/Zing/Zing.php";
 require_once __DIR__ . "/Zing/config.php";
 $zing = new Zing();
 $zing->init($config);
-$zing->setPage($page);
-$zing->setAction($action);
-$zing->setIsAjax($is_ajax);
+$zing->setRoute(filter_input(INPUT_GET, "path"));
 $zing->run();

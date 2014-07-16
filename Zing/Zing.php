@@ -1,33 +1,19 @@
 <?php
 
-use Modules\Cache;
-use Modules\Date;
-use Modules\DBO;
-use Modules\File;
-use Modules\Form;
-use Modules\Http;
-use Modules\Input;
-use Modules\Mail;
-use Modules\Math;
-use Modules\Twitter;
-use Modules\User;
-use Modules\Util;
-use Modules\Validate;
-
 /**
- * @property Input $input Functionality for global variables
- * @property Http $http Functionality to Http
- * @property DBO $dbo Functionality to connect to databases
+ * @property Modules\Input $input Functionality for global variables
+ * @property Modules\Http $http Functionality to Http
+ * @property Modules\DBO $dbo Functionality to connect to databases
  * @property Smarty $smarty Functionality for smarty templates
- * @property Form $form Functionality for forms and form validation
- * @property User $user Functionality to work with users
- * @property Mail $mail Functionality to work with emails
- * @property Util $util Functionality to access utilites
- * @property File $file Functionality to access files
- * @property Math $math Functionality to access math
- * @property Date $date Functionality to access dates
- * @property Validate $validate Functionality to access dates
- * @property Cache $cache Functionality to access dates
+ * @property Modules\Form $form Functionality for forms and form validation
+ * @property Modules\User $user Functionality to work with users
+ * @property Modules\Mail $mail Functionality to work with emails
+ * @property Modules\Util $util Functionality to access utilites
+ * @property Modules\File $file Functionality to access files
+ * @property Modules\Math $math Functionality to access math
+ * @property Modules\Date $date Functionality to access dates
+ * @property Modules\Validate $validate Functionality to access dates
+ * @property Modules\Cache $cache Functionality to access dates
  * @property Modules\Twitter $twitter Twitter Accessability
  */
 class Zing{
@@ -42,7 +28,8 @@ class Zing{
             $host             = "",
             $root             = "",
             $pageExists       = false,
-            $namespace        = "";
+            $namespace        = "",
+            $pageTitle        = "";
     private
             $headerTpl          = "Global/header",
             $footerTpl          = "Global/footer",
@@ -153,7 +140,7 @@ class Zing{
             try{
                 $loaded = (bool)$this->loadTemplates();
                 if($loaded){
-                    echo "Loaded";
+                    //echo "Loaded";
                 }else{
                     foreach(Zing::$widgets as $widget){
                         $w      = $widget["instance"];
@@ -172,44 +159,66 @@ class Zing{
     }
 
     final public function setRoute($path){
-        if(isset($this->config["route"])){
-            return;
+        if(!isset($this->config["route"])){
+            goto loadDefault;
         }
         $routes = $this->config["routes"];
         $route  = explode("/", trim($path, "/"));
+        // Start Testing all possible routes for this request
         foreach($routes as $rt){
             $testRt = explode("/", trim($rt, "/"));
             $params = array();
             $match  = true;
+            // Loop through all test items in defined route
             for($i = 0; $i < count($testRt); $i++){
                 $is_param = preg_match("/^@/", $testRt[$i]);
+                // Not a paramter keep testing current route
                 if(!$is_param && isset($route[$i]) && $route[$i] == $testRt[$i]){
-                    /* if($i == 0){
-                      $params["page"] = $route[$i];
-                      $this->setPage($route[$i]);
-                      }elseif($i == 1){
-                      $params["action"] = $route[$i];
-                      $this->setAction($route[$i]);
-                      } */
                     continue;
-                }elseif($is_param && isset($route[$i])){
-                    $v          = preg_replace("/@/", "", $testRt[$i], 1);
-                    $params[$v] = $route[$i];
-                    if($v == "page"){
+                    // Is a parameter, test current parameter futher
+                }elseif($is_param && (isset($route[$i]) || $testRt[$i] == "@action" || $testRt[$i] == "@page")){
+                    // Set default page/action if defined in route but not set
+                    if(!isset($route[$i])){
+                        if($testRt[$i] == "@action" && !isset($route[$i])){
+                            $route[$i] = "main";
+                        }elseif($testRt[$i] == "@page" && !isset($route[$i])){
+                            $route[$i] = "home";
+                        }
+                    }
+                    // Get the key/value pair to use
+                    // If it is null then this isn't a valid route
+                    // and start testing next route
+                    $keyVal = $this->getKeyValue($testRt[$i], $route[$i]);
+                    if($keyVal === null){
+                        $match  = false;
+                        $params = array();
+                        break;
+                    }
+                    // Add to array and set page/action if correct
+                    $params[$keyVal["key"]] = $keyVal["val"];
+                    if($keyVal["key"] == "page"){
                         $this->setPage($route[$i]);
-                    }elseif($v == "action"){
+                    }elseif($keyVal["key"] == "action"){
                         $this->setAction($route[$i]);
                     }
+                }elseif(!isset($route[$i])){
+                    $match  = false;
+                    $params = array();
+                    break;
                 }else{
+                    $match  = false;
                     $params = array();
                     break;
                 }
             }
             if($match){
+                $_GET = array_merge($_GET, $params);
                 return;
             }
         }
+        // No route was found, set default route
         if(empty($params)){
+            loadDefault:
             $count   = 0;
             preg_replace("/^ajax\//i", "", $path, -1, $count);
             $is_ajax = (bool)$count;
@@ -222,8 +231,21 @@ class Zing{
         $_GET = array_merge($_GET, $params);
     }
 
-    final public function linkRoutes(array $links = array()){
-        $query = 1;
+    private function getKeyValue($testItem, $routeItem){
+        $keyVal = explode("=", $testItem);
+        $items  = count($keyVal);
+        if($items == 2 && $routeItem == $keyVal[1]){
+            $key = preg_replace("/@/", "", $keyVal[0], 1);
+            $val = $keyVal[1];
+        }else{
+            if($items == 2){
+                return null;
+            }else{
+                $key = preg_replace("/@/", "", $testItem, 1);
+                $val = $routeItem;
+            }
+        }
+        return array("key" => $key, "val" => $val);
     }
 
     /**
@@ -253,6 +275,10 @@ class Zing{
             echo "<!DOCTYPE html><html><head><title>Page Not Found</title></head><body><h1>Page Not Found</h1><p>The Page you are looking for was not found.</p></body></html>";
         }
         exit;
+    }
+
+    final public function setTitle($title){
+        $this->pageTitle = $title;
     }
 
     /**
@@ -285,6 +311,9 @@ class Zing{
             $shell_loaded = true;
         }
         $loadedTpl = false;
+        if(!empty($this->pageTitle)){
+            $this->smarty->assign("PageTitle", $this->pageTitle);
+        }
         if(is_file($header) && is_file($main) && !$shell_loaded){
             $this->smarty->display($header);
             $loadedTpl = true;
@@ -475,7 +504,7 @@ class Zing{
     /**
      *
      * @param string $name
-     * @return DBO
+     * @return \Modules\DBO
      */
     final protected function dbo($name){
         if(!array_key_exists($name, $this->db)){
