@@ -2,7 +2,10 @@
 
 namespace Modules\Cache;
 
-class APCache extends \Modules\Cache implements \Modules\Cache\ICache{
+use Modules\Cache,
+    Modules\Cache\ICache;
+
+class APCache extends Cache implements ICache{
 
     /**
      * Gets an item from APC Cache

@@ -2,7 +2,10 @@
 
 namespace Modules\Cache;
 
-class FCache extends \Modules\Cache implements \Modules\Cache\ICache{
+use Modules\Cache,
+    Modules\Cache\ICache;
+
+class FCache extends Cache implements ICache{
 
     protected $root  = "";
     protected $cache = "/cache";
