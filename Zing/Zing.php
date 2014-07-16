@@ -1,20 +1,34 @@
 <?php
 
+use Modules\Cache;
+use Modules\Date;
+use Modules\DBO;
+use Modules\File;
+use Modules\Form;
+use Modules\Http;
+use Modules\Input;
+use Modules\Mail;
+use Modules\Math;
+use Modules\Twitter;
+use Modules\User;
+use Modules\Util;
+use Modules\Validate;
+
 /**
- * @property Modules\Input $input Functionality for global variables
- * @property Modules\Http $http Functionality to Http
- * @property Modules\DBO $dbo Functionality to connect to databases
+ * @property Input $input Functionality for global variables
+ * @property Http $http Functionality to Http
+ * @property DBO $dbo Functionality to connect to databases
  * @property Smarty $smarty Functionality for smarty templates
- * @property Modules\Form $form Functionality for forms and form validation
- * @property Modules\User $user Functionality to work with users
- * @property Modules\Mail $mail Functionality to work with emails
- * @property Modules\Util $util Functionality to access utilites
- * @property Modules\File $file Functionality to access files
- * @property Modules\Math $math Functionality to access math
- * @property Modules\Date $date Functionality to access dates
- * @property Modules\Validate $validate Functionality to access dates
- * @property Modules\Cache $cache Functionality to access dates
- * @property Modules\Twitter $twitter Twitter Accessability
+ * @property Form $form Functionality for forms and form validation
+ * @property User $user Functionality to work with users
+ * @property Mail $mail Functionality to work with emails
+ * @property Util $util Functionality to access utilites
+ * @property File $file Functionality to access files
+ * @property Math $math Functionality to access math
+ * @property Date $date Functionality to access dates
+ * @property Validate $validate Functionality to access dates
+ * @property Cache $cache Functionality to access dates
+ * @property Twitter $twitter Twitter Accessability
  */
 class Zing{
 
@@ -504,7 +518,7 @@ class Zing{
     /**
      *
      * @param string $name
-     * @return \Modules\DBO
+     * @return DBO
      */
     final protected function dbo($name){
         if(!array_key_exists($name, $this->db)){
