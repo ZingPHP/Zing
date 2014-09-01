@@ -2,15 +2,10 @@
 
 namespace Modules\Database;
 
-use Modules\DBO,
-    Exception,
-    Modules\Database\DBOView,
-    RecursiveIteratorIterator;
-
 /**
  * @method array getItemsBy*() getItemsBy*(mixed $value) Gets items from the table by column name
  */
-class DBOTable extends DBO{
+class DBOTable extends \Modules\DBO{
 
     private $table_primary_keys = array();
     private $table;
@@ -18,7 +13,7 @@ class DBOTable extends DBO{
     public function __construct($table_name, $db, $config){
         $this->db = $db;
         if(!$this->_validName($table_name)){
-            throw new Exception("Invalid Table Name '$table_name'.");
+            throw new \Exception("Invalid Table Name '$table_name'.");
         }
         $this->table = $table_name;
         parent::__construct($config);
@@ -33,13 +28,13 @@ class DBOTable extends DBO{
     public function __call($name, $arguments){
         $matches = array();
         if(preg_match("/^getItemsBy(.+)/", $name, $matches)){
-            $this->_getByColumn($matches[1], $arguments[0]);
+            $this->_getItemsByColumn($matches[1], $arguments[0]);
         }
         return $this;
     }
 
     public function getView(){
-        return new DBOView($this->table, $this->db, $this->config);
+        return new \Modules\Database\DBOView($this->table, $this->db, $this->config);
     }
 
     /**
@@ -55,7 +50,7 @@ class DBOTable extends DBO{
         $ncols = count($columns);
         $table = $this->table;
         if((bool)$ignore && strlen($after) > 0){
-            throw new Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
+            throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
         }
 
         $ign = (bool)$ignore ? "ignore" : "";
@@ -70,16 +65,29 @@ class DBOTable extends DBO{
         }
         $sql .= implode(",", $data);
         $sql .= " $after";
-        $it = new RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
+        $it = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
         $p  = iterator_to_array($it, false);
         $this->beginTransaction();
         try{
             $result = $this->query($sql, $p);
             $this->commitTransaction();
             return $result;
-        }catch(Exception $e){
+        }catch(\Exception $e){
             $this->rollBackTransaction();
         }
+    }
+
+    public function insert(array $data){
+        $keys   = array_keys($data);
+        $values = array_values($data);
+        foreach($keys as $key){
+            if(!$this->_validName($key)){
+                throw new Exception("Column '$key' is not a valid name.");
+            }
+        }
+        $q = array_pad(array(), count($data), "?");
+        $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
+        return $this;
     }
 
     /**
@@ -109,6 +117,10 @@ class DBOTable extends DBO{
         return $this;
     }
 
+    public function count(){
+        return count($this->toArray());
+    }
+
     /**
      * Gets data where column value equals value
      * @param string $column The column to use
@@ -116,9 +128,9 @@ class DBOTable extends DBO{
      * @return array
      * @throws \Exception
      */
-    protected function _getByColumn($column, $value){
+    protected function _getItemsByColumn($column, $value){
         if(!$this->_validName($column)){
-            throw new Exception("Invalid column format '$column'.");
+            throw new \Exception("Invalid column format '$column'.");
         }
         $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
         $this->setArray($array);
