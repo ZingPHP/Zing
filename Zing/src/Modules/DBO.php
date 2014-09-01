@@ -2,11 +2,7 @@
 
 namespace Modules;
 
-use Exception;
-use Modules\Database\DBOTable;
-use PDO;
-
-class DBO extends Module{
+class DBO extends \Modules\Module{
 
     protected
             $hostname = "",
@@ -23,21 +19,21 @@ class DBO extends Module{
         $this->hostname = isset($config["hostname"]) ? $config["hostname"] : "";
         $this->username = isset($config["username"]) ? $config["username"] : "";
         $this->password = isset($config["password"]) ? $config["password"] : "";
-        $this->database = isset($config["database"]) ? $config["database"] : "";
+        $this->database = isset($config["username"]) ? $config["database"] : "";
         $this->port     = isset($config["port"]) ? $config["port"] : 3306;
     }
 
     public function __invoke(){
-        echo "here";
+        //echo "here";
     }
 
     /**
      * Initialize a database object
      * @param array $config
-     * @return DBO
+     * @return \Modules\DBO
      */
     public function init($config){
-        return new DBO($config);
+        return new \Modules\DBO($config);
     }
 
     /**
@@ -49,9 +45,9 @@ class DBO extends Module{
         if($this->db !== null){
             return;
         }
-        echo "connecting...";
+        //echo "connecting...";
         try{
-            $this->db = new PDO("$this->dsn:dbname=$this->database;host=$this->hostname;port=" . (int)$this->port, $this->username, $this->password);
+            $this->db = new \PDO("$this->dsn:dbname=$this->database;host=$this->hostname;port=" . (int)$this->port, $this->username, $this->password);
             return $this;
         }catch(Exception $e){
             throw $e;
@@ -61,10 +57,11 @@ class DBO extends Module{
     /**
      * Creates a new Database Object Table
      * @param string $table_name
-     * @return DBOTable
+     * @return \Modules\Database\DBOTable
      */
     public function getTable($table_name){
-        return new DBOTable($table_name, $this->db, $this->config);
+        $this->connect();
+        return new \Modules\Database\DBOTable($table_name, $this->db, $this->config);
     }
 
     public function query($query, $params = array()){
@@ -74,7 +71,7 @@ class DBO extends Module{
             $this->bind($query, $params);
             $this->sql->execute();
             return true;
-        }catch(Exception $e){
+        }catch(\Exception $e){
             throw $e;
         }
     }
@@ -88,7 +85,7 @@ class DBO extends Module{
      */
     public function getAll($query, array $params = array()){
         $this->query($query, $params);
-        $array = $this->sql->fetchAll(PDO::FETCH_ASSOC);
+        $array = $this->sql->fetchAll(\PDO::FETCH_ASSOC);
         $this->setArray($array);
         return $this;
     }
@@ -102,9 +99,9 @@ class DBO extends Module{
      */
     public function getRow($query, array $params = array()){
         $this->query($query, $params);
-        $array = $this->sql->fetch(PDO::FETCH_ASSOC);
+        $array = $this->sql->fetch(\PDO::FETCH_ASSOC);
         $this->setArray($array);
-        return $this->array;
+        return ModuleShare::$array;
     }
 
     /**
@@ -174,19 +171,19 @@ class DBO extends Module{
         foreach($params as $key => $val){
             switch(gettype($val)){
                 case "boolean":
-                    $type = PDO::PARAM_BOOL;
+                    $type = \PDO::PARAM_BOOL;
                     break;
                 case "integer":
-                    $type = PDO::PARAM_INT;
+                    $type = \PDO::PARAM_INT;
                     break;
                 case "string":
-                    $type = PDO::PARAM_STR;
+                    $type = \PDO::PARAM_STR;
                     break;
                 case "null":
-                    $type = PDO::PARAM_NULL;
+                    $type = \PDO::PARAM_NULL;
                     break;
                 default:
-                    $type = PDO::PARAM_STR;
+                    $type = \PDO::PARAM_STR;
                     break;
             }
             $this->sql->bindValue($key, $val, $type);
@@ -204,7 +201,7 @@ class DBO extends Module{
 
     protected function _getAll($query, array $params = array()){
         $this->query($query, $params);
-        return $this->sql->fetchAll(PDO::FETCH_ASSOC);
+        return $this->sql->fetchAll(\PDO::FETCH_ASSOC);
     }
 
 }
