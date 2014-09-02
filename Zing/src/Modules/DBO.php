@@ -56,7 +56,7 @@ class DBO extends \Modules\Module{
 
     /**
      * Creates a new Database Object Table
-     * @param string $table_name
+     * @param string $table_name    The name of the table
      * @return \Modules\Database\DBOTable
      */
     public function getTable($table_name){
@@ -64,7 +64,24 @@ class DBO extends \Modules\Module{
         return new \Modules\Database\DBOTable($table_name, $this->db, $this->config);
     }
 
-    public function query($query, $params = array()){
+    /**
+     * Creates a new Database View
+     * @param string $table_name    The name of the table
+     * @return \Modules\Database\DBOView
+     */
+    public function getView($table_name){
+        $this->connect();
+        return new \Modules\Database\DBOView($table_name, $this->db, $this->config);
+    }
+
+    /**
+     * Executes a database query
+     * @param string $query
+     * @param array $params
+     * @return boolean
+     * @throws \Modules\Exception
+     */
+    public function query($query, array $params = array()){
         try{
             $this->connect();
             $this->sql = $this->db->prepare($query);
@@ -163,7 +180,7 @@ class DBO extends \Modules\Module{
      * Makes parameters MySQL safe
      * @param type $params
      */
-    protected function bind($query, $params){
+    protected function bind($query, array $params){
         if(strpos($query, "?")){
             array_unshift($params, null);
             unset($params[0]);
