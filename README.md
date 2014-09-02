@@ -4,7 +4,7 @@ Zing
 Lightweight php framework
 
 
-##Key Features
+##Some Key Features
 
 * Database aka DBO (Any database supported by PDO)
  * Connect to one or more databases
