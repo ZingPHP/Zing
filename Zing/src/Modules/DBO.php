@@ -4,6 +4,10 @@ namespace Modules;
 
 class DBO extends \Modules\Module{
 
+    const GET_ALL = "GET_ALL";
+    const GET_ROW = "GET_ROW";
+    const GET_ONE = "GET_ONE";
+
     protected
             $hostname = "",
             $username = "",
@@ -133,6 +137,20 @@ class DBO extends \Modules\Module{
         return $this->sql->fetchColumn(0);
     }
 
+    public function getNextSet($fetch = DBO::GET_ALL){
+        $this->sql->nextRowset();
+        switch($fetch){
+            case MyPDO::GET_ALL:
+                return $this->sql->fetchAll();
+            case MyPDO::GET_ROW:
+                return $this->sql->fetch();
+            case MyPDO::GET_ONE:
+                return $this->sql->fetchColumn(0);
+            default:
+                return $this->sql->fetchAll();
+        }
+    }
+
     /**
      * Get the last auto increment insert id
      * @return integer
@@ -219,6 +237,32 @@ class DBO extends \Modules\Module{
     protected function _getAll($query, array $params = array()){
         $this->query($query, $params);
         return $this->sql->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Tests an array of columns to see if they are vaild
+     * @param array $columns    An array of coluns to test
+     * @throws \Exception
+     */
+    protected function _testColumns(array $columns){
+        foreach($columns as $column){
+            if(!$this->_validName($column)){
+                throw new \Exception("Invalid Column Name '$column'.");
+            }
+        }
+    }
+
+    /**
+     * Tests an array of tables to see if they are vaild
+     * @param array $tables    An array of tables to test
+     * @throws \Exception
+     */
+    protected function _testTables(array $tables){
+        foreach($tables as $table){
+            if(!$this->_validName($column)){
+                throw new \Exception("Invalid Table Name '$table'.");
+            }
+        }
     }
 
 }
