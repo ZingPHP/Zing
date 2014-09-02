@@ -48,14 +48,13 @@ class DBOTable extends \Modules\DBO{
      */
     public function insertMultiRow(array $columns, array $params, $ignore = false, $after = ""){
         $ncols = count($columns);
-        $table = $this->table;
         if((bool)$ignore && strlen($after) > 0){
             throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
         }
 
         $ign = (bool)$ignore ? "ignore" : "";
 
-        $sql  = "insert $ign into $table";
+        $sql  = "insert $ign into `$this->table`";
         $sql .= " (" . implode(",", $columns) . ") ";
         $sql .= " values ";
         $data = array();
@@ -90,22 +89,28 @@ class DBOTable extends \Modules\DBO{
         return $this;
     }
 
+    /**
+     * Deletes a record or multiple records from the table
+     * @param int $id
+     * @param bool $uniq
+     * @return \Modules\Database\DBOTable
+     */
     public function delete($id, $uniq = true){
         $id     = (int)$id;
-        $table  = $this->table;
         $column = $this->_getPrimary();
         $extra  = (bool)$uniq ? "limit 1" : "";
         $this->beginTransaction();
         try{
-            $this->query("delete from `$table` where $column = ? $extra", array($id));
+            $this->query("delete from `$this->table` where $column = ? $extra", array($id));
             $this->commitTransaction();
         }catch(Exception $e){
             $this->rollBackTransaction();
         }
+        return $this;
     }
 
     /**
-     * Tests a table to see if a row exists.
+     * Tests a table to see if a row exists within the table
      * @param string $filter Where clause
      * @param array $params
      * @return boolean
@@ -123,14 +128,17 @@ class DBOTable extends \Modules\DBO{
      */
     public function getItemById($id, $uniq = true){
         $id     = (int)$id;
-        $table  = $this->table;
         $column = $this->_getPrimary();
         $extra  = (bool)$uniq ? "limit 1" : "";
-        $array  = $this->_getAll("select * from $table where $column = ? $extra", array($id));
+        $array  = $this->_getAll("select * from `$this->table` where $column = ? $extra", array($id));
         $this->setArray($array);
         return $this;
     }
 
+    /**
+     * Gets the number of rows that were found
+     * @return int
+     */
     public function count(){
         return count($this->toArray());
     }
