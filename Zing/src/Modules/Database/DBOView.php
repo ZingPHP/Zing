@@ -5,10 +5,13 @@ namespace Modules\Database;
 class DBOView extends \Modules\Database\DBOTable{
 
     protected
-            $rows    = 25,
-            $offset  = 0,
-            $columns = "*",
-            $filter  = "";
+            $rows          = 25,
+            $offset        = 0,
+            $columns       = "*",
+            $filter        = "",
+            $foundRows     = 0,
+            $resultSetSize = 0,
+            $page          = 0;
 
     public function __construct($table_name, $db, $config){
         if(!$this->_validName($table_name)){
@@ -36,8 +39,8 @@ class DBOView extends \Modules\Database\DBOTable{
         return $this;
     }
 
-    public function setOffset($offset){
-        $this->offset = (int)$offset;
+    public function setPage($page){
+        $this->page = $page;
         return $this;
     }
 
@@ -49,7 +52,27 @@ class DBOView extends \Modules\Database\DBOTable{
     public function getTableView(){
         $where   = !empty($this->filter) ? "where $this->filter" : "";
         $columns = $this->getColumns();
-        return $this->getAll("select $columns from $this->table $where limit $this->offset, $this->rows");
+        $offset  = $this->getOffset();
+
+        $data = $this->getAll("select SQL_CALC_FOUND_ROWS $columns from $this->table $where limit $offset, $this->rows");
+
+        $this->resultSet = count($data);
+        $this->foundRows = $this->getOne("select found_rows()");
+        return $this;
+    }
+
+    public function getMeta(){
+        return array(
+            "total"  => $this->foundRows,
+            "rows"   => $this->resultSetSize,
+            "page"   => $this->page,
+            "pages"  => ceil($this->foundRows / $this->resultSetSize),
+            "offset" => $this->getOffset(),
+        );
+    }
+
+    protected function getOffset(){
+        return (($this->page * $this->rows) - $this->rows);
     }
 
     protected function getColumns(){
