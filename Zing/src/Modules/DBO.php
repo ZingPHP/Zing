@@ -2,7 +2,7 @@
 
 namespace Modules;
 
-class DBO extends \Modules\Module{
+class DBO extends Module{
 
     const GET_ALL = "GET_ALL";
     const GET_ROW = "GET_ROW";
