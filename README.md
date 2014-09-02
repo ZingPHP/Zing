@@ -25,12 +25,12 @@ Lightweight php framework
     * Example: `$this->db->getRow("select * from members where member_id = ? limit 1", array(123))`
 * Mail
   * Send email with/without attachments
-    ```
+  ```
     $this->mail
         ->addAttachment("myfile.jpg")
         ->addRecipients(array("John Doe" => "jdoe@gmail.com))
         ->send(array("email" => "noreply@example.com", "name" => "No Reply"), "My Title", "My HTML Message")
-    ```
+  ```
 * Smarty Templates
 * Cache
   * File Caching for those who don't have memcache or APC
