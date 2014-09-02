@@ -140,11 +140,11 @@ class DBO extends \Modules\Module{
     public function getNextSet($fetch = DBO::GET_ALL){
         $this->sql->nextRowset();
         switch($fetch){
-            case MyPDO::GET_ALL:
+            case DBO::GET_ALL:
                 return $this->sql->fetchAll();
-            case MyPDO::GET_ROW:
+            case DBO::GET_ROW:
                 return $this->sql->fetch();
-            case MyPDO::GET_ONE:
+            case DBO::GET_ONE:
                 return $this->sql->fetchColumn(0);
             default:
                 return $this->sql->fetchAll();
