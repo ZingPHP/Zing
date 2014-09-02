@@ -90,6 +90,20 @@ class DBOTable extends \Modules\DBO{
         return $this;
     }
 
+    public function delete($id, $uniq = true){
+        $id     = (int)$id;
+        $table  = $this->table;
+        $column = $this->_getPrimary();
+        $extra  = (bool)$uniq ? "limit 1" : "";
+        $this->beginTransaction();
+        try{
+            $this->query("delete from `$table` where $column = ? $extra", array($id));
+            $this->commitTransaction();
+        }catch(Exception $e){
+            $this->rollBackTransaction();
+        }
+    }
+
     /**
      * Tests a table to see if a row exists.
      * @param string $filter Where clause
@@ -111,7 +125,7 @@ class DBOTable extends \Modules\DBO{
         $id     = (int)$id;
         $table  = $this->table;
         $column = $this->_getPrimary();
-        $extra  = $uniq ? "limit 1" : "";
+        $extra  = (bool)$uniq ? "limit 1" : "";
         $array  = $this->_getAll("select * from $table where $column = ? $extra", array($id));
         $this->setArray($array);
         return $this;
