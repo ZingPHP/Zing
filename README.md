@@ -41,6 +41,11 @@ Lightweight php framework
   ```
 * Smarty Templates
 * Cache
+```php
+$trending = $this->cache->setEngine()->cache("trending_news", 300, function(){
+    return $this->db->getAll("select * from news where votes > 50 order by last_vote desc");
+});
+```
   * File Caching for those who don't have memcache or APC
   * APC Caching
   * Memcache
