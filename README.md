@@ -12,6 +12,11 @@ Lightweight php framework
     * Example 1: `/@page=home/@id/@title`; This will only take place when page equals `home`
     * Example 2: `/@page=blog/@month/@year`; This will only take place when page equals `blog`
     * Example 3: `/@id/@action/@page`
+  * Anything prefixed with an `@` becomes a $_GET variable
+* Over-rideable methods
+  * `runBefore()` Runs before the main code usually for setting up defaults 
+  * `runAfter()` Runs after the main code usually for cleanup
+  * `catchAll()` Runs if the called action was not found
 * Database aka DBO (Any database supported by PDO)
   * Connect to one or more databases
   * Can interact with a database using a <b>D</b>ata<b>b</b>ase <b>O</b>bject Model
@@ -50,5 +55,10 @@ Lightweight php framework
     * User Names (0-9, A-Z, a-z and _)
     * Custom Format Tool
       * Example `$this->validate->isFormat($input, "(###) ###-####")`
+* Widgets
+  * These are pre-built items that accompany or inhance the actual page
+  * These are call using one line of code with optional settings
+    * Example: `$this->getWidget("Calendar", array("day" => "full"))`
+
 
 There are many other items, and new items being added all the time.
