@@ -1,7 +1,5 @@
 <?php
 
-use Modules\Module;
-
 namespace Modules;
 
 class Mail extends Module{
@@ -74,30 +72,17 @@ class Mail extends Module{
             if(!empty($this->attachments)){
                 $headers .= "Content-Type: multipart/mixed; boundary=\"$mime_boundary\";\r\n";
                 $msg_final = "--$mime_boundary\r\n" .
-                        "Content-Type: multipart/mixed; boundary=\"{$mime_boundary}\";\r\n" .
-                        "Content-Transfer-Encoding: 7bit\r\n\r\n" .
+                        "Content-Type: text/html; charset=utf-8\r\n" .
                         $message . "\r\n\r\n";
-                foreach($this->attachments as $file){
-                    if(!empty($file)){
-                        if(is_file($file)){
-                            continue;
-                        }
-                        $data = chunk_split(base64_encode(file_get_contents($file)));
-                        $msg_final .= "--{$mime_boundary}\r\n" .
-                                "Content-Type: multipart/alternative; name=\"" . basename($file) . "\"\r\n" .
-                                "Content-Transfer-Encoding: base64\r\n" .
-                                "Content-Disposition: attachment; filename=\"" . basename($file) . "\";\r\n\r\n" .
-                                $data . "\r\n\r\n" .
-                                "--{$mime_boundary}\r\n";
-                    }
-                }
+                $msg_final .= $this->attachFiles($mime_boundary);
             }else{
+                $msg_final = $message;
                 $headers .= "Content-type: text/html; charset=utf-8\r\n";
             }
             mail($email, $subject, $msg_final, $headers);
-            $this->reset();
-            return $this;
         }
+        $this->reset();
+        return $this;
     }
 
     /**
@@ -106,6 +91,28 @@ class Mail extends Module{
     protected function reset(){
         $this->attachments = array();
         $this->recipients  = array();
+    }
+
+    protected function attachFiles($mime_boundary){
+        $msg_final = "";
+        foreach($this->attachments as $file){
+            if(!empty($file)){
+                if(!is_file($file)){
+                    continue;
+                }
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime  = finfo_file($finfo, $file);
+                finfo_close($finfo);
+                $data  = chunk_split(base64_encode(file_get_contents($file)));
+                $msg_final .= "--{$mime_boundary}\r\n" .
+                        "Content-Type: $mime; name=\"" . basename($file) . "\"\r\n" .
+                        "Content-Transfer-Encoding: base64\r\n" .
+                        "Content-Disposition: attachment; filename=\"" . basename($file) . "\";\r\n\r\n" .
+                        $data . "\r\n\r\n" .
+                        "--{$mime_boundary}\r\n";
+            }
+        }
+        return $msg_final;
     }
 
 }
