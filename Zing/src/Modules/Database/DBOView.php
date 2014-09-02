@@ -66,9 +66,13 @@ class DBOView extends \Modules\Database\DBOTable{
             "total"  => $this->foundRows,
             "rows"   => $this->resultSetSize,
             "page"   => $this->page,
-            "pages"  => ceil($this->foundRows / $this->resultSetSize),
+            "pages"  => $this->getPages(),
             "offset" => $this->getOffset(),
         );
+    }
+
+    protected function getPages(){
+        return ceil($this->foundRows / $this->resultSetSize);
     }
 
     protected function getOffset(){
