@@ -8,7 +8,7 @@ namespace Modules\Database;
 class DBOTable extends \Modules\DBO{
 
     private $table_primary_keys = array();
-    private $table;
+    protected $table;
 
     public function __construct($table_name, $db, $config){
         $this->db = $db;
@@ -197,32 +197,6 @@ class DBOTable extends \Modules\DBO{
 
         $this->table_primary_keys[$this->table] = $key;
         return $key;
-    }
-
-    /**
-     * Tests an array of columns to see if they are vaild
-     * @param array $columns    An array of coluns to test
-     * @throws \Exception
-     */
-    private function _testColumns(array $columns){
-        foreach($columns as $column){
-            if(!$this->_validName($column)){
-                throw new \Exception("Invalid Column Name '$column'.");
-            }
-        }
-    }
-
-    /**
-     * Tests an array of tables to see if they are vaild
-     * @param array $tables    An array of tables to test
-     * @throws \Exception
-     */
-    private function _testTables(array $tables){
-        foreach($tables as $table){
-            if(!$this->_validName($column)){
-                throw new \Exception("Invalid Table Name '$table'.");
-            }
-        }
     }
 
 }
