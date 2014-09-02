@@ -12,7 +12,7 @@ Lightweight php framework
     * Example 1: `/@page=home/@id/@title`; This will only take place when page equals `home`
     * Example 2: `/@page=blog/@month/@year`; This will only take place when page equals `blog`
     * Example 3: `/@id/@action/@page`
-  * Anything prefixed with an `@` becomes a $_GET variable
+  * Anything prefixed with an `@` becomes a `$_GET` variable
 * Over-rideable methods
   * `runBefore()` Runs before the main code usually for setting up defaults 
   * `runAfter()` Runs after the main code usually for cleanup
@@ -75,7 +75,7 @@ Lightweight php framework
   * These are call using one line of code with optional settings
     * Example: `$this->getWidget("Calendar", array("day" => "full"))`
 
-##Features Still in the works
+##Features still in the works
 
 * Image
   * Image Manipulation
