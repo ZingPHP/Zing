@@ -20,16 +20,24 @@ Lightweight php framework
 * Database aka DBO (Any database supported by PDO)
   * Connect to one or more databases
   * Can interact with a database using a <b>D</b>ata<b>b</b>ase <b>O</b>bject Model
-    * Example: `$this->db->getTable("members")->getItemById(123)`
+  ```php
+  $this->db->getTable("members")->getItemById(123);
+  ```
   * You can write queries as you normally would as well
-    * Example: `$this->db->getRow("select * from members where member_id = ? limit 1", array(123))`
+  ```php
+  $this->db
+      ->getAll("select * from movies where title like ? ", array("peter%"))
+      ->each(function($row){
+          echo "<p>" . $row["title"] . ": " . $row["description"] . "</p>";
+      });
+  ```
 * Mail
   * Send email with/without attachments
-  ```
-    $this->mail
-        ->addAttachment("myfile.jpg")
-        ->addRecipients(array("John Doe" => "jdoe@gmail.com))
-        ->send(array("email" => "noreply@example.com", "name" => "No Reply"), "My Title", "My HTML Message")
+  ```php
+  $this->mail
+      ->addAttachment("myfile.jpg")
+      ->addRecipients(array("John Doe" => "jdoe@gmail.com"))
+      ->send(array("email" => "noreply@example.com", "name" => "No Reply"), "My Title", "My HTML Message");
   ```
 * Smarty Templates
 * Cache
