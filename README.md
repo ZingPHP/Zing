@@ -4,7 +4,7 @@ Zing
 Lightweight php framework
 
 
-##Some Key Features
+##Some Key Features (Light List)
 
 * Routes
   * Set URL routes to format your URL's as you please
@@ -60,5 +60,14 @@ Lightweight php framework
   * These are call using one line of code with optional settings
     * Example: `$this->getWidget("Calendar", array("day" => "full"))`
 
+##Features Still in the works
+
+* Image
+  * Image Manipulation
+    * Resizing
+    * Croping
+    * Filters
+    * Blending
+  * Image CAPTCHA
 
 There are many other items, and new items being added all the time.
