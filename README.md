@@ -8,7 +8,7 @@ Lightweight php framework
 
 * Database aka DBO (Any database supported by PDO)
  * Connect to one or more databases
- * Can interact with a database using a **D**ata**b**ase **O**bject Model
+ * Can interact with a database using a <b>D</b>ata<b>b</b>ase <b>O</b>bject Model
    * Example: `$this->db->getTable("members")->getItemById(123)`
  * You can write queries as you normally would as well
    * Example: `$this->db->getRow("select * from members where member_id = ? limit 1", array(123))`
