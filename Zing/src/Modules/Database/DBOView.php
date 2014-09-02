@@ -7,7 +7,7 @@ class DBOView extends \Modules\Database\DBOTable{
     protected
             $rows          = 25,
             $offset        = 0,
-            $columns       = "*",
+            $columns       = array(),
             $filter        = "",
             $foundRows     = 0,
             $resultSetSize = 0,
@@ -21,12 +21,22 @@ class DBOView extends \Modules\Database\DBOTable{
         parent::__construct($table_name, $db, $config);
     }
 
+    /**
+     * Sets the columns to get
+     * @param array $columns    An array of columns (key = dynamic column; value = alias)
+     * @return \Modules\Database\DBOView
+     */
     public function setColumns(array $columns){
         $this->_testColumns($columns);
         $this->columns = $columns;
         return $this;
     }
 
+    /**
+     * Adds additional columns to get
+     * @param array $columns
+     * @return \Modules\Database\DBOView
+     */
     public function addColumns(array $columns){
         $this->_testColumns($columns);
         $this->columns = !is_array($this->columns) ? array() : $this->columns;
@@ -34,21 +44,40 @@ class DBOView extends \Modules\Database\DBOTable{
         return $this;
     }
 
+    /**
+     * Sets the number of rows to return
+     * @param int $rows
+     * @return \Modules\Database\DBOView
+     */
     public function setRows($rows){
         $this->rows = (int)$rows;
         return $this;
     }
 
+    /**
+     * Set the page number
+     * @param int $page    The page number (1 or greater)
+     * @return \Modules\Database\DBOView
+     */
     public function setPage($page){
-        $this->page = $page;
+        $this->page = (int)$page > 0 ? (int)$page : 1;
         return $this;
     }
 
+    /**
+     * Set the filter to use
+     * @param type $filter    Filter to use without the "WHERE"
+     * @return \Modules\Database\DBOView
+     */
     public function setFilter($filter){
         $this->filter = $filter;
         return $this;
     }
 
+    /**
+     * Get the the table view
+     * @return \Modules\Database\DBOView
+     */
     public function getTableView(){
         $where   = !empty($this->filter) ? "where $this->filter" : "";
         $columns = $this->getColumns();
@@ -61,27 +90,43 @@ class DBOView extends \Modules\Database\DBOTable{
         return $this;
     }
 
+    /**
+     * Get the result information from the current view
+     * @return \Modules\Database\DBOMeta
+     */
     public function getMeta(){
-        return array(
-            "total"  => $this->foundRows,
-            "rows"   => $this->resultSetSize,
-            "page"   => $this->page,
-            "pages"  => $this->getPages(),
-            "offset" => $this->getOffset(),
-        );
+        $meta         = new DBOMeta();
+        $meta->total  = $this->foundRows;
+        $meta->rows   = $this->resultSetSize;
+        $meta->page   = $this->page;
+        $meta->pages  = $this->getPages();
+        $meta->offset = $this->getOffset();
+        return $meta;
     }
 
+    /**
+     * Get the total number of pages in the view
+     * @return int
+     */
     protected function getPages(){
         return ceil($this->foundRows / $this->resultSetSize);
     }
 
+    /**
+     * Get the current views offset
+     * @return int
+     */
     protected function getOffset(){
         return (($this->page * $this->rows) - $this->rows);
     }
 
+    /**
+     * Converts the columns to a string
+     * @return string
+     */
     protected function getColumns(){
-        if(is_string($this->columns)){
-            return $this->columns;
+        if(empty($this->columns)){
+            return "*";
         }
         $cols    = array_keys($this->columns);
         $aliases = array_values($this->columns);
@@ -97,5 +142,16 @@ class DBOView extends \Modules\Database\DBOTable{
         }
         return implode(", ", $strs);
     }
+
+}
+
+class DBOMeta{
+
+    public
+            $total  = 0,
+            $rows   = 0,
+            $page   = 0,
+            $pages  = 0,
+            $offset = 0;
 
 }
