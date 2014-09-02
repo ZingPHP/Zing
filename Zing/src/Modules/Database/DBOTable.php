@@ -200,7 +200,7 @@ class DBOTable extends \Modules\DBO{
     }
 
     /**
-     *
+     * Tests an array of columns to see if they are vaild
      * @param array $columns    An array of coluns to test
      * @throws \Exception
      */
@@ -213,7 +213,7 @@ class DBOTable extends \Modules\DBO{
     }
 
     /**
-     *
+     * Tests an array of tables to see if they are vaild
      * @param array $tables    An array of tables to test
      * @throws \Exception
      */
