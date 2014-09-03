@@ -91,7 +91,7 @@ class Module implements Iterator{
     }
 
     final public function key(){
-        return $this->position;
+        return ModuleShare::position;
     }
 
     final public function next(){
