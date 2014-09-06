@@ -1,7 +1,5 @@
 <?php
 
-use Modules\Module;
-
 namespace Modules;
 
 class User extends Module{
@@ -38,6 +36,13 @@ class User extends Module{
             $_SESSION[$key] = $val;
         }
         $_SESSION["ZingLoggedIn"] = true;
+        return $this;
+    }
+
+    public function logout(){
+        $_SESSION = array();
+        session_destroy();
+        return $this;
     }
 
     /**
