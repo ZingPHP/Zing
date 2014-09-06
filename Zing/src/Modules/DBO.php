@@ -204,4 +204,9 @@ class DBO extends \Modules\Module{
         return $this->sql->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    protected function _getRow($query, array $params = array()){
+        $this->query($query, $params);
+        return $this->sql->fetch(\PDO::FETCH_ASSOC);
+    }
+
 }
