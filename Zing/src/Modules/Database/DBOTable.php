@@ -3,7 +3,7 @@
 namespace Modules\Database;
 
 /**
- * @method array getItemsBy*() getItemsBy*(mixed $value) Gets items from the table by column name
+ * @method array getItemsBy_*() getItemsBy*(mixed $value) Gets items from the table by column name
  */
 class DBOTable extends \Modules\DBO{
 
@@ -27,8 +27,8 @@ class DBOTable extends \Modules\DBO{
      */
     public function __call($name, $arguments){
         $matches = array();
-        if(preg_match("/^getItemsBy(.+)/", $name, $matches)){
-            $this->_getItemsByColumn($matches[1], $arguments[0]);
+        if(preg_match("/^getItemsBy_(.+)/", $name, $matches)){
+            $this->_getItemsByColumn($matches[1], $arguments[0], $arguments[1]);
         }
         return $this;
     }
@@ -128,11 +128,15 @@ class DBOTable extends \Modules\DBO{
      * @return array
      * @throws \Exception
      */
-    protected function _getItemsByColumn($column, $value){
+    protected function _getItemsByColumn($column, $value, $uniq = false){
         if(!$this->_validName($column)){
             throw new \Exception("Invalid column format '$column'.");
         }
-        $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+        if(!(bool)$uniq){
+            $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+        }else{
+            $array = $this->_getRow("select * from `$this->table` where `$column` = ? limit 1", array($value));
+        }
         $this->setArray($array);
     }
 
