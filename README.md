@@ -24,19 +24,21 @@ Lightweight php framework
 
 Next you will need to modify the config file:
 
-    $config = array(
-        "websites" => array(
-            "host" => "example.com"
-        ),
-        "databases" => array(
-            "localhost" => array(// Global databases all sites can use
-                "hostname" => "localhost",
-                "username" => "my_user",
-                "password" => "my_password",
-                "database" => "my_database"
-            )
+```php
+$config = array(
+    "websites" => array(
+        "host" => "example.com"
+    ),
+    "databases" => array(
+        "localhost" => array(// Global databases all sites can use
+            "hostname" => "localhost",
+            "username" => "my_user",
+            "password" => "my_password",
+            "database" => "my_database"
         )
-    );
+    )
+);
+```
 
 1. Replace `example.com` with your domain.
 2. Either remove the databases section or modify the values for `hostname`, `username`, `password` and `database`
