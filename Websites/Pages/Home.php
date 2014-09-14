@@ -1,11 +1,12 @@
 <?php
 
-use Modules\Math;
-
 class Home extends Zing{
 
     public function main(){
-        // echo $this->math->toFoot(Math::kilometer, 200);
+        
+        echo "<h1>Zing</h1>";
+        echo "<p>Welcome to the Zing framework! Look like all is well!</p>";
+        
     }
 
 }
