@@ -3,6 +3,29 @@ Zing
 
 Lightweight php framework
 
+##Installation
+
+* Apache
+  1. Copy the follow files/directories into the root of your web directory
+    1. Websites/\*
+    2. Zing/\*
+    3. index.php
+    4. .htaccess
+  2. Make sure Mod_Rewrite is enabled if it is not:
+    1. Enable Mod_Rewrite
+    2. Restart Apache
+* Nginx
+  1. Copy the follow files/directories into the root of your web directory
+    1. Websites/\*
+    2. Zing/\*
+    3. index.php
+  2. Place <b>nginx.cfg</b> in your sites config directory
+  3. Reload Nginx `service nginx reload` (use sudo if needed)
+
+If All goes well, you should see the following message:
+
+    Success!
+    Welcome to the Zing framework! Looks like all is well!
 
 ##Some Key Features (Light List)
 
