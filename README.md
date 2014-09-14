@@ -22,7 +22,26 @@ Lightweight php framework
   2. Place <b>nginx.cfg</b> in your sites config directory
   3. Reload Nginx `service nginx reload` (use sudo if needed)
 
-If All goes well, you should see the following message:
+Next you will need to modify the config file:
+
+    $config = array(
+        "websites" => array(
+            "host" => "example.com"
+        ),
+        "databases" => array(
+            "localhost" => array(// Global databases all sites can use
+                "hostname" => "localhost",
+                "username" => "my_user",
+                "password" => "my_password",
+                "database" => "my_database"
+            )
+        )
+    );
+
+1. Replace `example.com` with your domain.
+2. Either remove the databases section or modify the values for `hostname`, `username`, `password` and `database`
+
+If all goes well, when you navigate to your domain you should see the following message:
 
     Success!
     Welcome to the Zing framework! Looks like all is well!
