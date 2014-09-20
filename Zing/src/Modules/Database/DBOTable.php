@@ -3,7 +3,7 @@
 namespace Modules\Database;
 
 /**
- * @method array getItemsBy_*() getItemsBy*(mixed $value) Gets items from the table by column name
+ * @method array getItemsBy*() getItemsBy*(mixed $value) Gets items from the table by column name
  */
 class DBOTable extends \Modules\DBO{
 
@@ -27,8 +27,8 @@ class DBOTable extends \Modules\DBO{
      */
     public function __call($name, $arguments){
         $matches = array();
-        if(preg_match("/^getItemsBy_(.+)/", $name, $matches)){
-            $this->_getItemsByColumn($matches[1], $arguments[0], $arguments[1]);
+        if(preg_match("/^getItemsBy(.+)/", $name, $matches)){
+            $this->_getByColumn($matches[1], $arguments[0]);
         }
         return $this;
     }
@@ -38,23 +38,24 @@ class DBOTable extends \Modules\DBO{
     }
 
     /**
-     * Inserts multiple rows into the table
-     * @param array $columns    Array of columns to use
-     * @param array $params     Multilevel array of values
-     * @param string $ignore    Adds an 'ignore' to the insert query
-     * @param string $after     A final statment such as 'on duplicate key...'
+     * creates a multirow insert query
+     * @param array $columns  Array of columns to use
+     * @param array $params   Multilevel array of values
+     * @param string $ignore  Adds an 'ignore' to the insert query
+     * @param string $after   A final statment such as 'on duplicate key...'
      * @return boolean
      * @throws Exception
      */
     public function insertMultiRow(array $columns, array $params, $ignore = false, $after = ""){
         $ncols = count($columns);
+        $table = $this->table;
         if((bool)$ignore && strlen($after) > 0){
             throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
         }
 
         $ign = (bool)$ignore ? "ignore" : "";
 
-        $sql  = "insert $ign into `$this->table`";
+        $sql  = "insert $ign into $table";
         $sql .= " (" . implode(",", $columns) . ") ";
         $sql .= " values ";
         $data = array();
@@ -77,66 +78,9 @@ class DBOTable extends \Modules\DBO{
     }
 
     /**
-     * Insert data into the table where the key is the column and the value is the insert value
-     * @param array $data    An array of data to insert
-     * @return \Modules\Database\DBOTable
-     */
-    public function insert(array $data){
-        $keys   = array_keys($data);
-        $values = array_values($data);
-        $this->_testColumns($keys);
-        $q      = array_pad(array(), count($data), "?");
-        $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
-        return $this;
-    }
-
-    /**
-     * Deletes a record or multiple records from the table
-     * @param mixed $id     The column value
-     * @param bool $uniq    Whether or not the column is unique
-     * @return \Modules\Database\DBOTable
-     */
-    public function delete($id, $uniq = true){
-        $id     = $id;
-        $column = $this->_getPrimary();
-        $extra  = (bool)$uniq ? "limit 1" : "";
-        $this->beginTransaction();
-        try{
-            $this->query("delete from `$this->table` where $column = ? $extra", array($id));
-            $this->commitTransaction();
-        }catch(Exception $e){
-            $this->rollBackTransaction();
-        }
-        return $this;
-    }
-
-    /**
-     * Creates and executes a join query
-     * @param array $tables     List of tables (other than current table)
-     * @param array $columns    List of columns (join key on value)
-     * @param string $filter    The Where clause without the "WHERE"
-     * @param array $params     PDO Replacement values
-     * @return \Modules\Database\DBOTable
-     */
-    public function join(array $tables, array $columns, $filter = "", array $params = array()){
-        $this->_testTables($tables);
-        $this->_testColumns($columns);
-        $this->_testColumns(array_keys($columns));
-        $joins = array();
-        $i     = 0;
-        foreach($columns as $col1 => $col2){
-            $joins[] = "`{$tables[$i]}` on `$col1` = `$col2`";
-            $i++;
-        }
-        $where = !empty($filter) ? " where $filter " : "";
-        $this->getAll("select * from `$this->table` join " . implode(" join ", $joins) . " $where", $params);
-        return $this;
-    }
-
-    /**
-     * Tests a table to see if a row exists within the table
-     * @param string $filter    The Where clause without the "WHERE"
-     * @param array $params     PDO Replacement values
+     * Tests a table to see if a row exists.
+     * @param string $filter Where clause
+     * @param array $params
      * @return boolean
      * @throws \Exception
      */
@@ -146,43 +90,32 @@ class DBOTable extends \Modules\DBO{
 
     /**
      * Gets a list of items from a table based on the primary key
-     * @param mixed $id        The column value
-     * @param boolean $uniq    Whether or not the column is unique
+     * @param mixed $id
+     * @param boolean $uniq
      * @return array|boolean
      */
     public function getItemById($id, $uniq = true){
-        $id     = $id;
+        $id     = (int)$id;
+        $table  = $this->table;
         $column = $this->_getPrimary();
-        $extra  = (bool)$uniq ? "limit 1" : "";
-        $array  = $this->_getAll("select * from `$this->table` where $column = ? $extra", array($id));
+        $extra  = $uniq ? "limit 1" : "";
+        $array  = $this->_getAll("select * from $table where $column = ? $extra", array($id));
         $this->setArray($array);
         return $this;
     }
 
     /**
-     * Gets the number of rows that were found
-     * @return int
-     */
-    public function count(){
-        return count($this->toArray());
-    }
-
-    /**
      * Gets data where column value equals value
-     * @param string $column    The column to use
-     * @param mixed $value      The value of the column
+     * @param string $column The column to use
+     * @param mixed $value The value of the column
      * @return array
      * @throws \Exception
      */
-    protected function _getItemsByColumn($column, $value, $uniq = false){
+    protected function _getByColumn($column, $value){
         if(!$this->_validName($column)){
             throw new \Exception("Invalid column format '$column'.");
         }
-        if(!(bool)$uniq){
-            $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
-        }else{
-            $array = $this->_getRow("select * from `$this->table` where `$column` = ? limit 1", array($value));
-        }
+        $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
         $this->setArray($array);
     }
 
@@ -201,32 +134,6 @@ class DBOTable extends \Modules\DBO{
 
         $this->table_primary_keys[$this->table] = $key;
         return $key;
-    }
-
-    /**
-     * Tests an array of columns to see if they are vaild
-     * @param array $columns    An array of coluns to test
-     * @throws \Exception
-     */
-    private function _testColumns(array $columns){
-        foreach($columns as $column){
-            if(!$this->_validName($column)){
-                throw new \Exception("Invalid Column Name '$column'.");
-            }
-        }
-    }
-
-    /**
-     * Tests an array of tables to see if they are vaild
-     * @param array $tables    An array of tables to test
-     * @throws \Exception
-     */
-    private function _testTables(array $tables){
-        foreach($tables as $table){
-            if(!$this->_validName($column)){
-                throw new \Exception("Invalid Table Name '$table'.");
-            }
-        }
     }
 
 }
