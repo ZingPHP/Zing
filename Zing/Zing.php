@@ -450,7 +450,7 @@ class Zing{
     }
 
     final public function getWidget($widgetName, array $settings = array()){
-        $widgetName = "\\Widgets\\" . str_replace("/", "\\", $widgetName);
+        $widgetName = "\\Widgets\\" . str_replace("/", "\\", $widgetName) . "\\$widgetName";
         $widget     = new $widgetName();
         $opts       = $widget->setDefaultOptions();
         $widget->setOptions($opts);
