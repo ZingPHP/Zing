@@ -3,12 +3,18 @@
 namespace Modules\Database;
 
 /**
- * @method array getItemsBy*() getItemsBy*(mixed $value) Gets items from the table by column name
+ * @method array getItemsBy_*() getItemsBy*(mixed $value) Gets items from the table by column name
  */
 class DBOTable extends \Modules\DBO{
 
     private $table_primary_keys = array();
     private $table;
+    private $internalQuery      = array(
+        "select" => "",
+        "order"  => "",
+        "where"  => "",
+        "group"  => "",
+    );
 
     public function __construct($table_name, $db, $config){
         $this->db = $db;
@@ -27,8 +33,8 @@ class DBOTable extends \Modules\DBO{
      */
     public function __call($name, $arguments){
         $matches = array();
-        if(preg_match("/^getItemsBy(.+)/", $name, $matches)){
-            $this->_getByColumn($matches[1], $arguments[0]);
+        if(preg_match("/^getItemsBy_(.+)/", $name, $matches)){
+            $this->_getItemsByColumn($matches[1], $arguments[0], $arguments[1]);
         }
         return $this;
     }
@@ -77,8 +83,49 @@ class DBOTable extends \Modules\DBO{
         }
     }
 
+    public function insert(array $data){
+        $keys   = array_keys($data);
+        $values = array_values($data);
+        foreach($keys as $key){
+            if(!$this->_validName($key)){
+                throw new Exception("Column '$key' is not a valid name.");
+            }
+        }
+        $q = array_pad(array(), count($data), "?");
+        $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
+        return $this;
+    }
+
+    public function getAllRows(){
+        $this->internalQuery["select"] = "select * from `$this->table`";
+        return $this;
+    }
+
+    public function orderRows($column, $direction = "asc"){
+        if(!$this->_validName($column)){
+            throw new \Exception("Invalid order by column name '$column'");
+        }
+        $direction                    = !in_array($direction, array("asc", "desc")) ? "asc" : $direction;
+        $this->internalQuery["order"] = "order by $column $direction";
+        return $this;
+    }
+
+    public function filterRows($filter){
+        $this->internalQuery["where"] = $filter;
+        return $this;
+    }
+
+    public function go(){
+        $select = $this->internalQuery["select"];
+        $where  = $this->internalQuery["where"];
+        $group  = $this->internalQuery["group"];
+        $order  = $this->internalQuery["order"];
+        $this->getAll("$select $where $group $order");
+        return $this;
+    }
+
     /**
-     * Tests a table to see if a row exists.
+     * Tests a table to see if a row exists using a filter.
      * @param string $filter Where clause
      * @param array $params
      * @return boolean
@@ -86,6 +133,23 @@ class DBOTable extends \Modules\DBO{
      */
     public function rowExists($filter, array $params = array()){
         return (bool)$this->getOne("select 1 from `$this->table` where $filter limit 1", $params);
+    }
+
+    /**
+     * Tests a table to see if a row exists using an array.
+     * @param array $columns
+     * @return boolean
+     * @throws \Exception
+     */
+    public function has(array $columns){
+        $cols  = array_keys($columns);
+        $vals  = array_values($columns);
+        $this->_testColumns($cols);
+        $where = array();
+        foreach($cols as $col){
+            $where[] = "$col = ?";
+        }
+        return (bool)$this->getOne("select 1 from $this->table where " . implode(" and ", $where) . " limit 1", $vals);
     }
 
     /**
@@ -99,9 +163,50 @@ class DBOTable extends \Modules\DBO{
         $table  = $this->table;
         $column = $this->_getPrimary();
         $extra  = $uniq ? "limit 1" : "";
-        $array  = $this->_getAll("select * from $table where $column = ? $extra", array($id));
+        $query  = "select * from $table where $column = ? $extra";
+        if($uniq){
+            $array = $this->_getRow($query, array($id));
+        }else{
+            $array = $this->_getAll($query, array($id));
+        }
         $this->setArray($array);
         return $this;
+    }
+
+    public function getItemByColumns(array $columns, array $orderBy = array()){
+        $cols  = array_keys($columns);
+        $vals  = array_values($columns);
+        $this->_testColumns($cols);
+        $where = array();
+        foreach($cols as $col){
+            $where[] = "$col = ?";
+        }
+
+        $order = array();
+        foreach($orderBy as $key => $value){
+            if(is_int($key)){
+                $key   = $value;
+                $value = "asc";
+            }
+            if(!$this->_validName($key)){
+                throw new \Exception("Invalid Column Name '$key'");
+            }
+            $value   = !in_array($value, array("asc", "desc")) ? "asc" : $value;
+            $order[] = "$key $value";
+        }
+
+        $orderStr = "";
+        if(count($order) > 0){
+            $orderStr = "order by " . implode(",", $order);
+        }
+
+        $array = $this->_getAll("select * from $this->table where " . implode(" and ", $where) . " $orderStr", $vals);
+        $this->setArray($array);
+        return $this;
+    }
+
+    public function count(){
+        return count($this->toArray());
     }
 
     /**
@@ -111,11 +216,15 @@ class DBOTable extends \Modules\DBO{
      * @return array
      * @throws \Exception
      */
-    protected function _getByColumn($column, $value){
+    protected function _getItemsByColumn($column, $value, $uniq = false){
         if(!$this->_validName($column)){
             throw new \Exception("Invalid column format '$column'.");
         }
-        $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+        if(!(bool)$uniq){
+            $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+        }else{
+            $array = $this->_getRow("select * from `$this->table` where `$column` = ? limit 1", array($value));
+        }
         $this->setArray($array);
     }
 
