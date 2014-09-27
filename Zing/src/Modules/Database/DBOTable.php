@@ -113,11 +113,22 @@ class DBOTable extends DBO{
         return $this;
     }
 
+    /**
+     * Gets all rows from a table (Use with care)
+     * @return \Modules\Database\DBOTable
+     */
     public function getAllRows(){
         $this->internalQuery["select"] = "select * from `$this->table`";
         return $this;
     }
 
+    /**
+     * Orders the rows in the simple qurery builder
+     * @param type $column
+     * @param type $direction
+     * @return \Modules\Database\DBOTable
+     * @throws Exception
+     */
     public function orderRows($column, $direction = "asc"){
         if(!$this->_validName($column)){
             throw new Exception("Invalid order by column name '$column'");
@@ -127,6 +138,11 @@ class DBOTable extends DBO{
         return $this;
     }
 
+    /**
+     * Filter the rows in the simple query builder
+     * @param type $filter
+     * @return \Modules\Database\DBOTable
+     */
     public function filterRows($filter){
         $this->internalQuery["where"] = $filter;
         return $this;
