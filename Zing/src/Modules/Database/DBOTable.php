@@ -2,13 +2,20 @@
 
 namespace Modules\Database;
 
+use Exception;
+use Modules\DBO;
+use Modules\ModuleShare;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
+
 /**
  * @method array getItemsBy_*() getItemsBy*(mixed $value) Gets items from the table by column name
  */
-class DBOTable extends \Modules\DBO{
+class DBOTable extends DBO{
 
     private $table_primary_keys = array();
     private $table;
+    private $joins              = array();
     private $internalQuery      = array(
         "select" => "",
         "order"  => "",
@@ -19,7 +26,7 @@ class DBOTable extends \Modules\DBO{
     public function __construct($table_name, $db, $config){
         $this->db = $db;
         if(!$this->_validName($table_name)){
-            throw new \Exception("Invalid Table Name '$table_name'.");
+            throw new Exception("Invalid Table Name '$table_name'.");
         }
         $this->table = $table_name;
         parent::__construct($config);
@@ -39,8 +46,12 @@ class DBOTable extends \Modules\DBO{
         return $this;
     }
 
+    /**
+     * Gets a subset view of the current table
+     * @return \Modules\Database\DBOView
+     */
     public function getView(){
-        return new \Modules\Database\DBOView($this->table, $this->db, $this->config);
+        return new DBOView($this->table, $this->db, $this->config);
     }
 
     /**
@@ -56,7 +67,7 @@ class DBOTable extends \Modules\DBO{
         $ncols = count($columns);
         $table = $this->table;
         if((bool)$ignore && strlen($after) > 0){
-            throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
+            throw new Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
         }
 
         $ign = (bool)$ignore ? "ignore" : "";
@@ -71,18 +82,24 @@ class DBOTable extends \Modules\DBO{
         }
         $sql .= implode(",", $data);
         $sql .= " $after";
-        $it = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
+        $it = new RecursiveIteratorIterator(new RecursiveArrayIterator($params));
         $p  = iterator_to_array($it, false);
         $this->beginTransaction();
         try{
             $result = $this->query($sql, $p);
             $this->commitTransaction();
             return $result;
-        }catch(\Exception $e){
+        }catch(Exception $e){
             $this->rollBackTransaction();
         }
     }
 
+    /**
+     * Inserts data into a table using key => value pairs
+     * @param array $data
+     * @return \Modules\Database\DBOTable
+     * @throws Exception
+     */
     public function insert(array $data){
         $keys   = array_keys($data);
         $values = array_values($data);
@@ -103,7 +120,7 @@ class DBOTable extends \Modules\DBO{
 
     public function orderRows($column, $direction = "asc"){
         if(!$this->_validName($column)){
-            throw new \Exception("Invalid order by column name '$column'");
+            throw new Exception("Invalid order by column name '$column'");
         }
         $direction                    = !in_array($direction, array("asc", "desc")) ? "asc" : $direction;
         $this->internalQuery["order"] = "order by $column $direction";
@@ -115,6 +132,10 @@ class DBOTable extends \Modules\DBO{
         return $this;
     }
 
+    /**
+     * Executes the simple query builder
+     * @return \Modules\Database\DBOTable
+     */
     public function go(){
         $select = $this->internalQuery["select"];
         $where  = $this->internalQuery["where"];
@@ -129,27 +150,35 @@ class DBOTable extends \Modules\DBO{
      * @param string $filter Where clause
      * @param array $params
      * @return boolean
-     * @throws \Exception
+     * @throws Exception
      */
     public function rowExists($filter, array $params = array()){
-        return (bool)$this->getOne("select 1 from `$this->table` where $filter limit 1", $params);
+        $table = $this->_buildTableSyntax();
+        $has   = (bool)$this->getOne("select 1 from $table where $filter limit 1", $params);
+
+        $this->joins = array();
+        return $has;
     }
 
     /**
      * Tests a table to see if a row exists using an array.
      * @param array $columns
      * @return boolean
-     * @throws \Exception
+     * @throws Exception
      */
     public function has(array $columns){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
         $where = array();
+        $table = $this->_buildTableSyntax();
         foreach($cols as $col){
             $where[] = "$col = ?";
         }
-        return (bool)$this->getOne("select 1 from $this->table where " . implode(" and ", $where) . " limit 1", $vals);
+        $has = (bool)$this->getOne("select 1 from $table where " . implode(" and ", $where) . " limit 1", $vals);
+
+        $this->joins = array();
+        return $has;
     }
 
     /**
@@ -160,7 +189,7 @@ class DBOTable extends \Modules\DBO{
      */
     public function getItemById($id, $uniq = true){
         $id     = (int)$id;
-        $table  = $this->table;
+        $table  = $this->_buildTableSyntax();
         $column = $this->_getPrimary();
         $extra  = $uniq ? "limit 1" : "";
         $query  = "select * from $table where $column = ? $extra";
@@ -170,10 +199,47 @@ class DBOTable extends \Modules\DBO{
             $array = $this->_getAll($query, array($id));
         }
         $this->setArray($array);
+        $this->joins = array();
         return $this;
     }
 
-    public function getItemByColumns(array $columns, array $orderBy = array()){
+    /**
+     * Adds a table to join on from the initial table or previous join() calls
+     * @param string $table
+     * @param array $on
+     * @return \Modules\Database\DBOTable
+     * @throws Exception
+     */
+    public function join($table, array $on){
+        $keys  = array_keys($on);
+        $vals  = array_values($on);
+        $joins = array();
+        foreach($keys as $k => $v){
+            if(is_int($k) && $this->_validName($v)){
+                $joins[] = "using({$vals[$k]})";
+            }else{
+                if(!$this->_validName($k)){
+                    throw new Exception("Invalid name '$k'");
+                }
+                if(!$this->_validName($v)){
+                    throw new Exception("Invalid name '$v'");
+                }
+                $joins[] = "$k = {$vals[$k]}";
+            }
+        }
+        $this->joins[$table] = $joins;
+        return $this;
+    }
+
+    /**
+     * Gets Rows based on the array passed in
+     * @param array $columns
+     * @param bool $uniq
+     * @param array $orderBy
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function getItemByColumns(array $columns, $uniq = false, array $orderBy = array()){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
@@ -189,7 +255,7 @@ class DBOTable extends \Modules\DBO{
                 $value = "asc";
             }
             if(!$this->_validName($key)){
-                throw new \Exception("Invalid Column Name '$key'");
+                throw new Exception("Invalid Column Name '$key'");
             }
             $value   = !in_array($value, array("asc", "desc")) ? "asc" : $value;
             $order[] = "$key $value";
@@ -199,9 +265,38 @@ class DBOTable extends \Modules\DBO{
         if(count($order) > 0){
             $orderStr = "order by " . implode(",", $order);
         }
-
-        $array = $this->_getAll("select * from $this->table where " . implode(" and ", $where) . " $orderStr", $vals);
+        $table = $this->_buildTableSyntax();
+        if((bool)$uniq){
+            $array = $this->_getRow("select * from $table where " . implode(" and ", $where) . " $orderStr limit 1", $vals);
+        }else{
+            $array = $this->_getAll("select * from $table where " . implode(" and ", $where) . " $orderStr", $vals);
+        }
         $this->setArray($array);
+        $this->joins = array();
+        return $this;
+    }
+
+    /**
+     * Formats a column or an array of database columns using a callback
+     * @param string|array $columns
+     * @param \Modules\Database\callable $formatter
+     * @return \Modules\Database\DBOTable
+     */
+    public function formatColumn($columns, callable $formatter){
+        if(!is_array($columns)){
+            $columns = array($columns);
+        }
+        foreach($this as $key => $val){
+            if(is_array($val)){
+                foreach($val as $k => $v){
+                    if(in_array($k, $columns)){
+                        ModuleShare::$array[$key][$k] = $formatter($v);
+                    }
+                }
+            }else{
+                ModuleShare::$array[$key] = $formatter($val);
+            }
+        }
         return $this;
     }
 
@@ -210,15 +305,30 @@ class DBOTable extends \Modules\DBO{
     }
 
     /**
+     * Creates a database table syntax. Example: tableA on tableB using(columnA)
+     * @return type
+     */
+    protected function _buildTableSyntax(){
+        $str = $this->table;
+        foreach($this->joins as $table => $join){
+            $str .= " join $table ";
+            foreach($join as $j){
+                $str .= " $j ";
+            }
+        }
+        return $str;
+    }
+
+    /**
      * Gets data where column value equals value
      * @param string $column The column to use
      * @param mixed $value The value of the column
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     protected function _getItemsByColumn($column, $value, $uniq = false){
         if(!$this->_validName($column)){
-            throw new \Exception("Invalid column format '$column'.");
+            throw new Exception("Invalid column format '$column'.");
         }
         if(!(bool)$uniq){
             $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
