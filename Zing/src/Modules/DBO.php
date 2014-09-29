@@ -263,6 +263,9 @@ class DBO extends Module{
                 throw new \Exception("Invalid Table Name '$table'.");
             }
         }
+    protected function _getRow($query, array $params = array()){
+        $this->query($query, $params);
+        return $this->sql->fetch(\PDO::FETCH_ASSOC);
     }
 
 }

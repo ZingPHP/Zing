@@ -2,18 +2,32 @@
 
 namespace Modules\Database;
 
+use Exception;
+use Modules\DBO;
+use Modules\ModuleShare;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
+
 /**
- * @method array getItemsBy*() getItemsBy*(mixed $value) Gets items from the table by column name
+ * @method array getItemsBy_*() getItemsBy*(mixed $value) Gets items from the table by column name
  */
-class DBOTable extends \Modules\DBO{
+class DBOTable extends DBO{
 
     private $table_primary_keys = array();
     protected $table;
+    private $table;
+    private $joins              = array();
+    private $internalQuery      = array(
+        "select" => "",
+        "order"  => "",
+        "where"  => "",
+        "group"  => "",
+    );
 
     public function __construct($table_name, $db, $config){
         $this->db = $db;
         if(!$this->_validName($table_name)){
-            throw new \Exception("Invalid Table Name '$table_name'.");
+            throw new Exception("Invalid Table Name '$table_name'.");
         }
         $this->table = $table_name;
         parent::__construct($config);
@@ -27,34 +41,39 @@ class DBOTable extends \Modules\DBO{
      */
     public function __call($name, $arguments){
         $matches = array();
-        if(preg_match("/^getItemsBy(.+)/", $name, $matches)){
-            $this->_getItemsByColumn($matches[1], $arguments[0]);
+        if(preg_match("/^getItemsBy_(.+)/", $name, $matches)){
+            $this->_getItemsByColumn($matches[1], $arguments[0], $arguments[1]);
         }
         return $this;
     }
 
+    /**
+     * Gets a subset view of the current table
+     * @return \Modules\Database\DBOView
+     */
     public function getView(){
-        return new \Modules\Database\DBOView($this->table, $this->db, $this->config);
+        return new DBOView($this->table, $this->db, $this->config);
     }
 
     /**
-     * Inserts multiple rows into the table
-     * @param array $columns    Array of columns to use
-     * @param array $params     Multilevel array of values
-     * @param string $ignore    Adds an 'ignore' to the insert query
-     * @param string $after     A final statment such as 'on duplicate key...'
+     * creates a multirow insert query
+     * @param array $columns  Array of columns to use
+     * @param array $params   Multilevel array of values
+     * @param string $ignore  Adds an 'ignore' to the insert query
+     * @param string $after   A final statment such as 'on duplicate key...'
      * @return boolean
      * @throws Exception
      */
     public function insertMultiRow(array $columns, array $params, $ignore = false, $after = ""){
         $ncols = count($columns);
+        $table = $this->table;
         if((bool)$ignore && strlen($after) > 0){
-            throw new \Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
+            throw new Exception("Can't do an 'ignore' and 'duplicate key update' in the same query.");
         }
 
         $ign = (bool)$ignore ? "ignore" : "";
 
-        $sql  = "insert $ign into `$this->table`";
+        $sql  = "insert $ign into $table";
         $sql .= " (" . implode(",", $columns) . ") ";
         $sql .= " values ";
         $data = array();
@@ -64,121 +83,275 @@ class DBOTable extends \Modules\DBO{
         }
         $sql .= implode(",", $data);
         $sql .= " $after";
-        $it = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($params));
+        $it = new RecursiveIteratorIterator(new RecursiveArrayIterator($params));
         $p  = iterator_to_array($it, false);
         $this->beginTransaction();
         try{
             $result = $this->query($sql, $p);
             $this->commitTransaction();
             return $result;
-        }catch(\Exception $e){
+        }catch(Exception $e){
             $this->rollBackTransaction();
         }
     }
 
     /**
-     * Insert data into the table where the key is the column and the value is the insert value
-     * @param array $data    An array of data to insert
+     * Inserts data into a table using key => value pairs
+     * @param array $data
      * @return \Modules\Database\DBOTable
+     * @throws Exception
      */
     public function insert(array $data){
         $keys   = array_keys($data);
         $values = array_values($data);
-        $this->_testColumns($keys);
-        $q      = array_pad(array(), count($data), "?");
+        foreach($keys as $key){
+            if(!$this->_validName($key)){
+                throw new Exception("Column '$key' is not a valid name.");
+            }
+        }
+        $q = array_pad(array(), count($data), "?");
         $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
         return $this;
     }
 
     /**
-     * Deletes a record or multiple records from the table
-     * @param mixed $id     The column value
-     * @param bool $uniq    Whether or not the column is unique
+     * Gets all rows from a table (Use with care)
      * @return \Modules\Database\DBOTable
      */
-    public function delete($id, $uniq = true){
-        $id     = $id;
-        $column = $this->_getPrimary();
-        $extra  = (bool)$uniq ? "limit 1" : "";
-        $this->beginTransaction();
-        try{
-            $this->query("delete from `$this->table` where $column = ? $extra", array($id));
-            $this->commitTransaction();
-        }catch(Exception $e){
-            $this->rollBackTransaction();
-        }
+    public function getAllRows(){
+        $this->internalQuery["select"] = "select * from `$this->table`";
         return $this;
     }
 
     /**
-     * Creates and executes a join query
-     * @param array $tables     List of tables (other than current table)
-     * @param array $columns    List of columns (join key on value)
-     * @param string $filter    The Where clause without the "WHERE"
-     * @param array $params     PDO Replacement values
+     * Orders the rows in the simple qurery builder
+     * @param type $column
+     * @param type $direction
      * @return \Modules\Database\DBOTable
+     * @throws Exception
      */
-    public function join(array $tables, array $columns, $filter = "", array $params = array()){
-        $this->_testTables($tables);
-        $this->_testColumns($columns);
-        $this->_testColumns(array_keys($columns));
-        $joins = array();
-        $i     = 0;
-        foreach($columns as $col1 => $col2){
-            $joins[] = "`{$tables[$i]}` on `$col1` = `$col2`";
-            $i++;
+    public function orderRows($column, $direction = "asc"){
+        if(!$this->_validName($column)){
+            throw new Exception("Invalid order by column name '$column'");
         }
-        $where = !empty($filter) ? " where $filter " : "";
-        $this->getAll("select * from `$this->table` join " . implode(" join ", $joins) . " $where", $params);
+        $direction                    = !in_array($direction, array("asc", "desc")) ? "asc" : $direction;
+        $this->internalQuery["order"] = "order by $column $direction";
         return $this;
     }
 
     /**
-     * Tests a table to see if a row exists within the table
-     * @param string $filter    The Where clause without the "WHERE"
-     * @param array $params     PDO Replacement values
+     * Filter the rows in the simple query builder
+     * @param type $filter
+     * @return \Modules\Database\DBOTable
+     */
+    public function filterRows($filter){
+        $this->internalQuery["where"] = $filter;
+        return $this;
+    }
+
+    /**
+     * Executes the simple query builder
+     * @return \Modules\Database\DBOTable
+     */
+    public function go(){
+        $select = $this->internalQuery["select"];
+        $where  = $this->internalQuery["where"];
+        $group  = $this->internalQuery["group"];
+        $order  = $this->internalQuery["order"];
+        $this->getAll("$select $where $group $order");
+        return $this;
+    }
+
+    /**
+     * Tests a table to see if a row exists using a filter.
+     * @param string $filter Where clause
+     * @param array $params
      * @return boolean
-     * @throws \Exception
+     * @throws Exception
      */
     public function rowExists($filter, array $params = array()){
-        return (bool)$this->getOne("select 1 from `$this->table` where $filter limit 1", $params);
+        $table = $this->_buildTableSyntax();
+        $has   = (bool)$this->getOne("select 1 from $table where $filter limit 1", $params);
+
+        $this->joins = array();
+        return $has;
+    }
+
+    /**
+     * Tests a table to see if a row exists using an array.
+     * @param array $columns
+     * @return boolean
+     * @throws Exception
+     */
+    public function has(array $columns){
+        $cols  = array_keys($columns);
+        $vals  = array_values($columns);
+        $this->_testColumns($cols);
+        $where = array();
+        $table = $this->_buildTableSyntax();
+        foreach($cols as $col){
+            $where[] = "$col = ?";
+        }
+        $has = (bool)$this->getOne("select 1 from $table where " . implode(" and ", $where) . " limit 1", $vals);
+
+        $this->joins = array();
+        return $has;
     }
 
     /**
      * Gets a list of items from a table based on the primary key
-     * @param mixed $id        The column value
-     * @param boolean $uniq    Whether or not the column is unique
+     * @param mixed $id
+     * @param boolean $uniq
      * @return array|boolean
      */
     public function getItemById($id, $uniq = true){
-        $id     = $id;
+        $id     = (int)$id;
+        $table  = $this->_buildTableSyntax();
         $column = $this->_getPrimary();
-        $extra  = (bool)$uniq ? "limit 1" : "";
-        $array  = $this->_getAll("select * from `$this->table` where $column = ? $extra", array($id));
+        $extra  = $uniq ? "limit 1" : "";
+        $query  = "select * from $table where $column = ? $extra";
+        if($uniq){
+            $array = $this->_getRow($query, array($id));
+        }else{
+            $array = $this->_getAll($query, array($id));
+        }
         $this->setArray($array);
+        $this->joins = array();
         return $this;
     }
 
     /**
-     * Gets the number of rows that were found
-     * @return int
+     * Adds a table to join on from the initial table or previous join() calls
+     * @param string $table
+     * @param array $on
+     * @return \Modules\Database\DBOTable
+     * @throws Exception
      */
+    public function join($table, array $on){
+        $keys  = array_keys($on);
+        $vals  = array_values($on);
+        $joins = array();
+        foreach($keys as $k => $v){
+            if(is_int($k) && $this->_validName($v)){
+                $joins[] = "using({$vals[$k]})";
+            }else{
+                if(!$this->_validName($k)){
+                    throw new Exception("Invalid name '$k'");
+                }
+                if(!$this->_validName($v)){
+                    throw new Exception("Invalid name '$v'");
+                }
+                $joins[] = "$k = {$vals[$k]}";
+            }
+        }
+        $this->joins[$table] = $joins;
+        return $this;
+    }
+
+    /**
+     * Gets Rows based on the array passed in
+     * @param array $columns
+     * @param bool $uniq
+     * @param array $orderBy
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function getItemByColumns(array $columns, $uniq = false, array $orderBy = array()){
+        $cols  = array_keys($columns);
+        $vals  = array_values($columns);
+        $this->_testColumns($cols);
+        $where = array();
+        foreach($cols as $col){
+            $where[] = "$col = ?";
+        }
+
+        $order = array();
+        foreach($orderBy as $key => $value){
+            if(is_int($key)){
+                $key   = $value;
+                $value = "asc";
+            }
+            if(!$this->_validName($key)){
+                throw new Exception("Invalid Column Name '$key'");
+            }
+            $value   = !in_array($value, array("asc", "desc")) ? "asc" : $value;
+            $order[] = "$key $value";
+        }
+
+        $orderStr = "";
+        if(count($order) > 0){
+            $orderStr = "order by " . implode(",", $order);
+        }
+        $table = $this->_buildTableSyntax();
+        if((bool)$uniq){
+            $array = $this->_getRow("select * from $table where " . implode(" and ", $where) . " $orderStr limit 1", $vals);
+        }else{
+            $array = $this->_getAll("select * from $table where " . implode(" and ", $where) . " $orderStr", $vals);
+        }
+        $this->setArray($array);
+        $this->joins = array();
+        return $this;
+    }
+
+    /**
+     * Formats a column or an array of database columns using a callback
+     * @param string|array $columns
+     * @param \Modules\Database\callable $formatter
+     * @return \Modules\Database\DBOTable
+     */
+    public function formatColumn($columns, callable $formatter){
+        if(!is_array($columns)){
+            $columns = array($columns);
+        }
+        foreach($this as $key => $val){
+            if(is_array($val)){
+                foreach($val as $k => $v){
+                    if(in_array($k, $columns)){
+                        ModuleShare::$array[$key][$k] = $formatter($v);
+                    }
+                }
+            }else{
+                ModuleShare::$array[$key] = $formatter($val);
+            }
+        }
+        return $this;
+    }
+
     public function count(){
         return count($this->toArray());
     }
 
     /**
-     * Gets data where column value equals value
-     * @param string $column    The column to use
-     * @param mixed $value      The value of the column
-     * @return array
-     * @throws \Exception
+     * Creates a database table syntax. Example: tableA on tableB using(columnA)
+     * @return type
      */
-    protected function _getItemsByColumn($column, $value){
-        if(!$this->_validName($column)){
-            throw new \Exception("Invalid column format '$column'.");
+    protected function _buildTableSyntax(){
+        $str = $this->table;
+        foreach($this->joins as $table => $join){
+            $str .= " join $table ";
+            foreach($join as $j){
+                $str .= " $j ";
+            }
         }
-        $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+        return $str;
+    }
+
+    /**
+     * Gets data where column value equals value
+     * @param string $column The column to use
+     * @param mixed $value The value of the column
+     * @return array
+     * @throws Exception
+     */
+    protected function _getItemsByColumn($column, $value, $uniq = false){
+        if(!$this->_validName($column)){
+            throw new Exception("Invalid column format '$column'.");
+        }
+        if(!(bool)$uniq){
+            $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+        }else{
+            $array = $this->_getRow("select * from `$this->table` where `$column` = ? limit 1", array($value));
+        }
         $this->setArray($array);
     }
 

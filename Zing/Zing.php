@@ -173,19 +173,23 @@ class Zing{
     }
 
     final public function setRoute($path){
-        if(!isset($this->config["route"])){
+        if(isset($this->config["route"])){
+            return;
+        }
+        if(!isset($this->config["routes"])){
             goto loadDefault;
         }
         $routes = $this->config["routes"];
         $route  = explode("/", trim($path, "/"));
         // Start Testing all possible routes for this request
         foreach($routes as $rt){
-            $testRt = explode("/", trim($rt, "/"));
+            $useRt  = explode(" ", $rt);
+            $testRt = explode("/", trim($useRt[0], "/"));
             $params = array();
             $match  = true;
             // Loop through all test items in defined route
             for($i = 0; $i < count($testRt); $i++){
-                $is_param = preg_match("/^@/", $testRt[$i]);
+                $is_param = preg_match("/^@|^#/", $testRt[$i]);
                 // Not a paramter keep testing current route
                 if(!$is_param && isset($route[$i]) && $route[$i] == $testRt[$i]){
                     continue;
@@ -208,6 +212,19 @@ class Zing{
                         $params = array();
                         break;
                     }
+                    // Test for int types
+                    // If it is not an int when required
+                    // start testing next route
+                    if(isset($testRt[$i])){
+                        $intTest = explode("=", $testRt[$i]);
+                        if(preg_match("/^#/", $intTest[0])){
+                            if(!ctype_digit($keyVal["val"])){
+                                $match  = false;
+                                $params = array();
+                                break;
+                            }
+                        }
+                    }
                     // Add to array and set page/action if correct
                     $params[$keyVal["key"]] = $keyVal["val"];
                     if($keyVal["key"] == "page"){
@@ -227,6 +244,27 @@ class Zing{
             }
             if($match){
                 $_GET = array_merge($_GET, $params);
+                if(isset($useRt[1])){
+                    $defaults = explode(",", $useRt[1]);
+                    foreach($defaults as $default){
+                        $defaultItem = explode("=", $default);
+                        $is_param    = preg_match("/^@|^#/", $defaultItem[0]);
+                        if($is_param){
+                            $key  = str_replace(array("@", "#"), "", $defaultItem[0]);
+                            $_GET = array_merge($_GET, array($key => $defaultItem[1]));
+                            if($key == "action"){
+                                $this->setAction($defaultItem[1]);
+                            }
+                            if($key == "page"){
+                                $this->setPage($defaultItem[1]);
+                            }
+                        }
+                    }
+                }
+                $count   = 0;
+                preg_replace("/^\/ajax\//i", "", $path, -1, $count);
+                $is_ajax = (bool)$count;
+                $this->setIsAjax($is_ajax);
                 return;
             }
         }
@@ -248,14 +286,15 @@ class Zing{
     private function getKeyValue($testItem, $routeItem){
         $keyVal = explode("=", $testItem);
         $items  = count($keyVal);
+        //var_dump($testItem, $routeItem, $keyVal);
         if($items == 2 && $routeItem == $keyVal[1]){
-            $key = preg_replace("/@/", "", $keyVal[0], 1);
+            $key = preg_replace("/@|#/", "", $keyVal[0], 1);
             $val = $keyVal[1];
         }else{
             if($items == 2){
                 return null;
             }else{
-                $key = preg_replace("/@/", "", $testItem, 1);
+                $key = preg_replace("/@|#/", "", $testItem, 1);
                 $val = $routeItem;
             }
         }
@@ -411,7 +450,7 @@ class Zing{
     }
 
     final public function getWidget($widgetName, array $settings = array()){
-        $widgetName = "\\Widgets\\" . str_replace("/", "\\", $widgetName);
+        $widgetName = "\\Widgets\\" . str_replace("/", "\\", $widgetName) . "\\$widgetName";
         $widget     = new $widgetName();
         $opts       = $widget->setDefaultOptions();
         $widget->setOptions($opts);
