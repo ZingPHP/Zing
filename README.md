@@ -6,7 +6,7 @@ Lightweight php framework
 ##Installation
 
 * Apache
-  1. Copy the follow files/directories into the root of your web directory
+  1. Copy the following files/directories into the root of your web directory
     1. Websites/\*
     2. Zing/\*
     3. index.php
@@ -15,7 +15,7 @@ Lightweight php framework
     1. Enable Mod_Rewrite
     2. Restart Apache
 * Nginx
-  1. Copy the follow files/directories into the root of your web directory
+  1. Copy the following files/directories into the root of your web directory
     1. Websites/\*
     2. Zing/\*
     3. index.php
