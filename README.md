@@ -40,7 +40,7 @@ $config = array(
 );
 ```
 
-1. Replace `example.com` with your domain.
+1. Replace `example.com` with your domain (excluding `http://` and/or `www`).
 2. Either remove the databases section or modify the values for `hostname`, `username`, `password` and `database`
 
 If all goes well, when you navigate to your domain you should see the following message:
