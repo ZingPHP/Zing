@@ -239,6 +239,11 @@ class DBO extends Module{
         return $this->sql->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    protected function _getRow($query, array $params = array()){
+        $this->query($query, $params);
+        return $this->sql->fetch(\PDO::FETCH_ASSOC);
+    }
+
     /**
      * Tests an array of columns to see if they are vaild
      * @param array $columns    An array of coluns to test
@@ -259,13 +264,10 @@ class DBO extends Module{
      */
     protected function _testTables(array $tables){
         foreach($tables as $table){
-            if(!$this->_validName($column)){
+            if(!$this->_validName($table)){
                 throw new \Exception("Invalid Table Name '$table'.");
             }
         }
-    protected function _getRow($query, array $params = array()){
-        $this->query($query, $params);
-        return $this->sql->fetch(\PDO::FETCH_ASSOC);
     }
 
 }

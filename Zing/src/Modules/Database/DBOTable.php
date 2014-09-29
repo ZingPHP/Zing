@@ -15,7 +15,6 @@ class DBOTable extends DBO{
 
     private $table_primary_keys = array();
     protected $table;
-    private $table;
     private $joins              = array();
     private $internalQuery      = array(
         "select" => "",
