@@ -10,7 +10,7 @@ I would recommend **NOT** cloning the repo because then you will have to copy an
 1. Change directories to your webroot `cd /my/web/root`
 2. Initialize a git repository `git init`
 3. Set your upstream `git remote add zing https://github.com/ZingPHP/Zing.git`
-  * If you don't have another remove your can use `origin` instead of `zing`
+  * If this is your only git repo for the website you can use `origin` instead of `zing`
 4. Download the repo `git pull zing master`
 
 If you did the above 4 steps, then skip to step 2 in either the Apache or Nginx section
