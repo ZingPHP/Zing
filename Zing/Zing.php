@@ -44,6 +44,7 @@ class Zing{
             $db               = array(),
             $host             = "",
             $root             = "",
+            $tplExtention     = "tpl",
             $pageExists       = false,
             $namespace        = "",
             $pageTitle        = "";
@@ -82,20 +83,7 @@ class Zing{
     public function __get($name){
         if(array_key_exists($name, $this->modules) && !$this->modules[$name]){
             $class                = ucfirst($name);
-//            if($name === "twig"){
-//                require_once __DIR__ . "/src/Modules/Twig/Autoloader.php";
-//                Twig_Autoloader::register();
-//
-//                $loader      = new Twig_Loader_Filesystem(__DIR__ . "/../Websites/Templates");
-//                $this->$name = new Twig_Environment($loader, array(
-//                    'cache' => __DIR__ . "/../templates_c",
-//                ));
-//
-//                $this->modules[$name] = true;
-//            }
-//            if(!in_array($name, array("smarty", "twig"))){
             $class                = "Modules\\$class";
-//            }
             $this->$name          = new $class($this->config);
             $this->modules[$name] = true;
             return $this->$name;
@@ -103,7 +91,6 @@ class Zing{
     }
 
     public function __construct(){
-//$this->db   = (object)$this->db;
         $this->root = $_SERVER["DOCUMENT_ROOT"];
         if(isset($_GET["host"])){
             $this->host = preg_replace("/^www(.*?)\./", "", $_GET["host"]);
@@ -359,20 +346,21 @@ class Zing{
             throw new Exception("Host Not Found");
         }
         $templates = $this->root . "/Websites/Templates/";
+        $extention = $this->tpl->getFileExtention();
 
         $shell_loaded = false;
-        $header       = $templates . $this->headerTpl . ".tpl";
+        $header       = $templates . $this->headerTpl . "." . $extention;
         if(!empty($this->mainTpl)){
-            $main = $templates . $this->mainTpl . ".tpl";
+            $main = $templates . $this->mainTpl . "." . $extention;
         }else{
-            $main = $templates . ucfirst(Zing::$page) . "/" . Zing::$action . ".tpl";
+            $main = $templates . ucfirst(Zing::$page) . "/" . Zing::$action . "." . $extention;
         }
         if(!is_file($main) && !$this->pageExists){
             throw new Exception("Template Not Found.");
         }
-        $footer = $templates . $this->footerTpl . ".tpl";
+        $footer = $templates . $this->footerTpl . "." . $extention;
         if($this->tplShell !== null){
-            $shell = $templates . "Shells/" . $this->tplShell . ".tpl";
+            $shell = $templates . "Shells/" . $this->tplShell . "." . $extention;
             if(is_file($shell) && !$shell_loaded){
                 $this->tpl->assign("file", $main);
                 $this->tpl->display($shell);

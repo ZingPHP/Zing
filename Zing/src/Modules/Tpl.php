@@ -6,9 +6,10 @@ use Exception;
 
 class Tpl extends Module{
 
-    protected $engines   = array();
-    protected $engine    = null;
-    protected $tplEngine = null;
+    protected $engines       = array();
+    protected $engine        = null;
+    protected $tplEngine     = null;
+    protected $fileExtention = "tpl";
 
     public function __construct($config = array()){
         $engines = glob(__DIR__ . "/TemplateEngines/*", GLOB_ONLYDIR);
@@ -29,6 +30,14 @@ class Tpl extends Module{
         $this->tplEngine = new $engineName();
         $this->engine    = $this->tplEngine->init();
         return $this;
+    }
+
+    public function setFileExtension($extention){
+        $this->fileExtention = $extention;
+    }
+
+    public function getFileExtention(){
+        return $this->fileExtention;
     }
 
     public function assign($key, $value = ""){
