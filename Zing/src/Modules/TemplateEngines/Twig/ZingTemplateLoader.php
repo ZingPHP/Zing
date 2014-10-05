@@ -20,6 +20,7 @@ class ZingTemplateLoader implements ZingTemplate{
         Twig_Autoloader::register();
         $loader     = new Twig_Loader_Filesystem(__DIR__ . "/../../../../../Websites/Templates");
         $this->twig = new Twig_Environment($loader);
+        return $this->twig;
     }
 
     public function render($filename){
