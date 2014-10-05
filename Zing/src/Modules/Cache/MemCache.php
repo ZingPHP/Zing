@@ -2,9 +2,9 @@
 
 namespace Modules\Cache;
 
-use Modules\Cache,
-    Modules\Cache\ICache,
-    Memcache;
+use Interfaces\ICache;
+use Memcache;
+use Modules\Cache;
 
 class Memcache extends Cache implements ICache{
 

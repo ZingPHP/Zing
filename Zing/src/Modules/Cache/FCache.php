@@ -2,8 +2,9 @@
 
 namespace Modules\Cache;
 
-use Modules\Cache,
-    Modules\Cache\ICache;
+use Interfaces\ICache;
+use Modules\Cache;
+use Modules\Cache\FCache;
 
 class FCache extends Cache implements ICache{
 
@@ -80,7 +81,7 @@ class FCache extends Cache implements ICache{
 
     /**
      * Deletes everything from file cache
-     * @return \Modules\Cache\FCache
+     * @return FCache
      */
     public function destroy(){
         $files = glob($this->root . "/*.cache.php");

@@ -37,7 +37,7 @@ class TwitterOAuth{
         );
 
         if(count(array_intersect_key($required, $config)) !== count($required)){
-            throw new \Exception('Missing parameters in configuration array');
+            throw new Exception('Missing parameters in configuration array');
         }
 
         if(!isset($config['output_format']) || !in_array($config['output_format'], $this->outputFormats)){
