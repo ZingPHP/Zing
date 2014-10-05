@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Tpl;
 use Modules\Cache;
 use Modules\Date;
 use Modules\DBO;
@@ -19,6 +20,8 @@ use Modules\Validate;
  * @property Http $http Functionality to Http
  * @property DBO $dbo Functionality to connect to databases
  * @property Smarty $smarty Functionality for smarty templates
+ * @property Twig_Environment $twig Functionality for twig templates
+ * @property Tpl $tpl Template Engine
  * @property Form $form Functionality for forms and form validation
  * @property User $user Functionality to work with users
  * @property Mail $mail Functionality to work with emails
@@ -55,10 +58,10 @@ class Zing{
                 "dbo"      => false,
                 "input"    => false,
                 "http"     => false,
-                "smarty"   => false,
                 "form"     => false,
                 "user"     => false,
                 "mail"     => false,
+                "tpl"      => false,
                 "util"     => false,
                 "file"     => false,
                 "math"     => false,
@@ -78,10 +81,21 @@ class Zing{
      */
     public function __get($name){
         if(array_key_exists($name, $this->modules) && !$this->modules[$name]){
-            $class = ucfirst($name);
-            if($name !== "smarty"){
-                $class = "Modules\\$class";
-            }
+            $class                = ucfirst($name);
+//            if($name === "twig"){
+//                require_once __DIR__ . "/src/Modules/Twig/Autoloader.php";
+//                Twig_Autoloader::register();
+//
+//                $loader      = new Twig_Loader_Filesystem(__DIR__ . "/../Websites/Templates");
+//                $this->$name = new Twig_Environment($loader, array(
+//                    'cache' => __DIR__ . "/../templates_c",
+//                ));
+//
+//                $this->modules[$name] = true;
+//            }
+//            if(!in_array($name, array("smarty", "twig"))){
+            $class                = "Modules\\$class";
+//            }
             $this->$name          = new $class($this->config);
             $this->modules[$name] = true;
             return $this->$name;
@@ -167,6 +181,7 @@ class Zing{
                     }
                 }
             }catch(Exception $e){
+                echo $e->getMessage();
                 $this->notFound();
             }
         }
@@ -339,6 +354,7 @@ class Zing{
      * @param class $class
      */
     final protected function loadTemplates(){
+        $templates = $this->root . "/Websites/Templates/";
         if(!isset($this->config["host"])){
             throw new Exception("Host Not Found");
         }
@@ -358,27 +374,27 @@ class Zing{
         if($this->tplShell !== null){
             $shell = $templates . "Shells/" . $this->tplShell . ".tpl";
             if(is_file($shell) && !$shell_loaded){
-                $this->smarty->assign("file", $main);
-                $this->smarty->display($shell);
+                $this->tpl->assign("file", $main);
+                $this->tpl->display($shell);
             }
             $shell_loaded = true;
         }
         $loadedTpl = false;
         if(!empty($this->pageTitle)){
-            $this->smarty->assign("PageTitle", $this->pageTitle);
+            $this->tpl->assign("PageTitle", $this->pageTitle);
         }
         if(is_file($header) && is_file($main) && !$shell_loaded){
-            $this->smarty->display($header);
+            $this->tpl->display($header);
             $loadedTpl = true;
         }
 
         if(is_file($main) && !$shell_loaded){
-            $this->smarty->display($main);
+            $this->tpl->display($main);
             $loadedTpl = true;
         }
 
         if(is_file($footer) && is_file($main) && !$shell_loaded){
-            $this->smarty->display($footer);
+            $this->tpl->display($footer);
             $loadedTpl = true;
         }
         return $loadedTpl;
@@ -594,7 +610,16 @@ spl_autoload_register(function($class){
     if(is_file($file)){
         require_once $file;
     }
+//    $file = __DIR__ . "/src/Modules/Twig/$class.php";
+//    if(is_file($file)){
+//        require_once $file;
+//    }
     $file = __DIR__ . "/../Websites/Helpers/$class.php";
+    if(is_file($file)){
+        require_once $file;
+        return;
+    }
+    $file = __DIR__ . "/$class.php";
     if(is_file($file)){
         require_once $file;
         return;

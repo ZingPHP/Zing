@@ -5,6 +5,7 @@ $config = array(
         array(
             "name"      => "ZingPHP",
             "host"      => "zingphp.org",
+            "tplEngine" => "Twig",
             "alias"     => array(
                 "zing.com",
                 "monkey.com",
