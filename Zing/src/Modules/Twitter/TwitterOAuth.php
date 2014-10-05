@@ -7,8 +7,6 @@
  * @author Ricardo Pereira <github@ricardopereira.es>
  * @copyright 2013
  */
-//namespace TwitterOAuth;
-//use TwitterOAuth\Exception\TwitterException;
 
 namespace Modules\Twitter;
 
