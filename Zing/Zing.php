@@ -18,7 +18,7 @@ use Modules\Validate;
 /**
  * @property Input $input Functionality for global variables
  * @property Http $http Functionality to Http
- * @property DBO $dbo Functionality to connect to databases
+ * @property DBO $DBO Functionality to connect to databases
  * @property Smarty $smarty Functionality for smarty templates
  * @property Twig_Environment $twig Functionality for twig templates
  * @property Tpl $tpl Template Engine
@@ -56,8 +56,9 @@ class Zing{
             $config             = array(),
             $fullConfig         = array(),
             $modules            = array(
-                "dbo"      => false,
+                "DBO"      => false,
                 "input"    => false,
+                "session"  => false,
                 "http"     => false,
                 "form"     => false,
                 "user"     => false,
@@ -86,8 +87,8 @@ class Zing{
             $class                = "Modules\\$class";
             $this->$name          = new $class($this->config);
             $this->modules[$name] = true;
-            return $this->$name;
         }
+        return $this->$name;
     }
 
     public function __construct(){
@@ -495,7 +496,7 @@ class Zing{
         }
         if($reflection->isPublic()){
             $class  = new Zing::$page();
-            $class->initPage($this->config);
+            $class->initPage($this->config, $this->fullConfig);
             Zing::$page = Zing::$page;
             $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
             $class->runBefore();
@@ -513,8 +514,9 @@ class Zing{
      * Initialize the webpage to be used.
      * @param array $config
      */
-    private function initPage($config){
-        $this->config = $config;
+    private function initPage($config, $fullConfig){
+        $this->config     = $config;
+        $this->fullConfig = $fullConfig;
         $this->setupDatabases();
     }
 
@@ -539,7 +541,7 @@ class Zing{
 // Setup Pirmary global databases
         if(isset($this->fullConfig["databases"]) && is_array($this->fullConfig["databases"])){
             foreach($this->fullConfig["databases"] as $name => $data){
-                $this->db[$name] = $this->dbo->init($this->config);
+                $this->db[$name] = $this->DBO->init($this->config);
                 if(!isset($data["dsn"])){
                     $data["dsn"] = "mysql";
                 }
@@ -549,7 +551,7 @@ class Zing{
 // Setup loacal database (duplicates override global databases)
         if(isset($this->config["databases"]) && is_array($this->config["databases"])){
             foreach($this->config["databases"] as $name => $data){
-                $this->db[$name] = $this->dbo->init($this->config);
+                $this->db[$name] = $this->DBO->init($this->config);
                 if(!isset($data["dsn"])){
                     $data["dsn"] = "mysql";
                 }
@@ -594,14 +596,6 @@ spl_autoload_register(function($class){
         require_once $file;
         return;
     }
-    $file = __DIR__ . "/src/Modules/Smarty/$class.class.php";
-    if(is_file($file)){
-        require_once $file;
-    }
-//    $file = __DIR__ . "/src/Modules/Twig/$class.php";
-//    if(is_file($file)){
-//        require_once $file;
-//    }
     $file = __DIR__ . "/../Websites/Helpers/$class.php";
     if(is_file($file)){
         require_once $file;
