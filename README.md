@@ -37,7 +37,8 @@ Next you will need to modify the config file:
 ```php
 $config = array(
     "websites" => array(
-        "host" => "example.com"
+        "host"      => "example.com"
+        "tplEngine" => "Smarty", // Smarty, Twig or other framework
     ),
     "databases" => array(
         "localhost" => array(// Global databases all sites can use
