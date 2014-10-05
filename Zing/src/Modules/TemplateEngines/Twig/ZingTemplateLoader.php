@@ -30,7 +30,7 @@ class ZingTemplateLoader implements ZingTemplate{
     }
 
     public function assign($key, $value = ""){
-        $this->vars($key, $value);
+        $this->vars[$key] = $value;
     }
 
 }
