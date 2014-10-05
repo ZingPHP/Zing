@@ -2,8 +2,8 @@
 
 namespace Modules\Cache;
 
-use Modules\Cache,
-    Modules\Cache\ICache;
+use Interfaces\ICache;
+use Modules\Cache;
 
 class APCache extends Cache implements ICache{
 

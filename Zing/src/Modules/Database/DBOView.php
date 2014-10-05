@@ -1,8 +1,12 @@
 <?php
 
+use Modules\Database\DBOMeta;
+use Modules\Database\DBOTable;
+use Modules\Database\DBOView;
+
 namespace Modules\Database;
 
-class DBOView extends \Modules\Database\DBOTable{
+class DBOView extends DBOTable{
 
     protected
             $rows          = 25,
@@ -15,7 +19,7 @@ class DBOView extends \Modules\Database\DBOTable{
 
     public function __construct($table_name, $db, $config){
         if(!$this->_validName($table_name)){
-            throw new \Exception("Invalid Table Name '$table_name'.");
+            throw new Exception("Invalid Table Name '$table_name'.");
         }
         $this->table = $table_name;
         parent::__construct($table_name, $db, $config);
@@ -24,7 +28,7 @@ class DBOView extends \Modules\Database\DBOTable{
     /**
      * Sets the columns to get
      * @param array $columns    An array of columns (key = dynamic column; value = alias)
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function setColumns(array $columns){
         $this->_testColumns($columns);
@@ -35,7 +39,7 @@ class DBOView extends \Modules\Database\DBOTable{
     /**
      * Adds additional columns to get
      * @param array $columns
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function addColumns(array $columns){
         $this->_testColumns($columns);
@@ -47,7 +51,7 @@ class DBOView extends \Modules\Database\DBOTable{
     /**
      * Sets the number of rows to return
      * @param int $rows
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function setRows($rows){
         $this->rows = (int)$rows;
@@ -57,7 +61,7 @@ class DBOView extends \Modules\Database\DBOTable{
     /**
      * Set the page number
      * @param int $page    The page number (1 or greater)
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function setPage($page){
         $this->page = (int)$page > 0 ? (int)$page : 1;
@@ -67,7 +71,7 @@ class DBOView extends \Modules\Database\DBOTable{
     /**
      * Set the filter to use
      * @param type $filter    Filter to use without the "WHERE"
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function setFilter($filter){
         $this->filter = $filter;
@@ -76,7 +80,7 @@ class DBOView extends \Modules\Database\DBOTable{
 
     /**
      * Get the the table view
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function getTableView(){
         $where   = !empty($this->filter) ? "where $this->filter" : "";
@@ -92,7 +96,7 @@ class DBOView extends \Modules\Database\DBOTable{
 
     /**
      * Get the result information from the current view
-     * @return \Modules\Database\DBOMeta
+     * @return DBOMeta
      */
     public function getMeta(){
         $meta         = new DBOMeta();
