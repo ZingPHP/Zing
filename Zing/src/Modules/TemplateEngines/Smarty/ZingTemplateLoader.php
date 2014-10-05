@@ -13,6 +13,7 @@ class ZingTemplateLoader implements ZingTemplate{
     protected $smarty = null;
 
     public function init(){
+        require_once __DIR__ . "/Smarty.class.php";
         $this->smarty = new Smarty();
         return $this->smarty;
     }
@@ -26,7 +27,3 @@ class ZingTemplateLoader implements ZingTemplate{
     }
 
 }
-
-spl_autoload_register(function($class){
-    require_once __DIR__ . "/Smarty.class.php";
-});
