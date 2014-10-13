@@ -252,6 +252,18 @@ class DBOTable extends DBO{
         return $this;
     }
 
+    public function with(array $columns, callable $callback){
+        $cols  = array_keys($columns);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+        $where = implode("` and = ? `", $cols);
+        $this->query("select * from $table where `" . $where . "` limit 1", $vals);
+
+        while($row = $this->getNext()){
+            call_user_func_array($callback, array($row));
+        }
+    }
+
     /**
      * Gets a list of items from a table based on the primary key
      * @param mixed $id

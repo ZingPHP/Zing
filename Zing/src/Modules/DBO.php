@@ -1,8 +1,11 @@
 <?php
 
-use Modules\Module;
-
 namespace Modules;
+
+use Exception;
+use Modules\Database\DBOTable;
+use Modules\Database\DBOView;
+use PDO;
 
 class DBO extends Module{
 
@@ -36,10 +39,10 @@ class DBO extends Module{
     /**
      * Initialize a database object
      * @param array $config
-     * @return \Modules\DBO
+     * @return DBO
      */
     public function init($config){
-        return new \Modules\DBO($config);
+        return new DBO($config);
     }
 
     /**
@@ -53,7 +56,7 @@ class DBO extends Module{
         }
         //echo "connecting...";
         try{
-            $this->db = new \PDO("$this->dsn:dbname=$this->database;host=$this->hostname;port=" . (int)$this->port, $this->username, $this->password);
+            $this->db = new PDO("$this->dsn:dbname=$this->database;host=$this->hostname;port=" . (int)$this->port, $this->username, $this->password);
             return $this;
         }catch(Exception $e){
             throw $e;
@@ -63,21 +66,21 @@ class DBO extends Module{
     /**
      * Creates a new Database Object Table
      * @param string $table_name    The name of the table
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
     public function getTable($table_name){
         $this->connect();
-        return new \Modules\Database\DBOTable($table_name, $this->db, $this->config);
+        return new DBOTable($table_name, $this->db, $this->config);
     }
 
     /**
      * Creates a new Database View
      * @param string $table_name    The name of the table
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function getView($table_name){
         $this->connect();
-        return new \Modules\Database\DBOView($table_name, $this->db, $this->config);
+        return new DBOView($table_name, $this->db, $this->config);
     }
 
     /**
@@ -94,7 +97,7 @@ class DBO extends Module{
             $this->bind($query, $params);
             $this->sql->execute();
             return true;
-        }catch(\Exception $e){
+        }catch(Exception$e){
             throw $e;
         }
     }
@@ -108,7 +111,7 @@ class DBO extends Module{
      */
     public function getAll($query, array $params = array()){
         $this->query($query, $params);
-        $array = $this->sql->fetchAll(\PDO::FETCH_ASSOC);
+        $array = $this->sql->fetchAll(PDO::FETCH_ASSOC);
         $this->setArray($array);
         return $this;
     }
@@ -122,7 +125,7 @@ class DBO extends Module{
      */
     public function getRow($query, array $params = array()){
         $this->query($query, $params);
-        $array = $this->sql->fetch(\PDO::FETCH_ASSOC);
+        $array = $this->sql->fetch(PDO::FETCH_ASSOC);
         $this->setArray($array);
         return ModuleShare::$array;
     }
@@ -137,6 +140,10 @@ class DBO extends Module{
     public function getOne($query, array $params = array()){
         $this->query($query, $params);
         return $this->sql->fetchColumn(0);
+    }
+
+    public function getNext($style = PDO::FETCH_ASSOC){
+        return $this->sql->fetch($style);
     }
 
     public function getNextSet($fetch = DBO::GET_ALL){
@@ -208,19 +215,19 @@ class DBO extends Module{
         foreach($params as $key => $val){
             switch(gettype($val)){
                 case "boolean":
-                    $type = \PDO::PARAM_BOOL;
+                    $type = PDO::PARAM_BOOL;
                     break;
                 case "integer":
-                    $type = \PDO::PARAM_INT;
+                    $type = PDO::PARAM_INT;
                     break;
                 case "string":
-                    $type = \PDO::PARAM_STR;
+                    $type = PDO::PARAM_STR;
                     break;
                 case "null":
-                    $type = \PDO::PARAM_NULL;
+                    $type = PDO::PARAM_NULL;
                     break;
                 default:
-                    $type = \PDO::PARAM_STR;
+                    $type = PDO::PARAM_STR;
                     break;
             }
             $this->sql->bindValue($key, $val, $type);
@@ -238,23 +245,22 @@ class DBO extends Module{
 
     protected function _getAll($query, array $params = array()){
         $this->query($query, $params);
-        return $this->sql->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->sql->fetchAll(PDO::FETCH_ASSOC);
     }
 
     protected function _getRow($query, array $params = array()){
         $this->query($query, $params);
-        return $this->sql->fetch(\PDO::FETCH_ASSOC);
+        return $this->sql->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
      * Tests an array of columns to see if they are vaild
      * @param array $columns    An array of coluns to test
-     * @throws \Exception
-     */
+     * @throws Exception     */
     protected function _testColumns(array $columns){
         foreach($columns as $column){
             if(!$this->_validName($column)){
-                throw new \Exception("Invalid Column Name '$column'.");
+                throw new Exception("Invalid Column Name '$column'.");
             }
         }
     }
@@ -262,12 +268,11 @@ class DBO extends Module{
     /**
      * Tests an array of tables to see if they are vaild
      * @param array $tables    An array of tables to test
-     * @throws \Exception
-     */
+     * @throws Exception     */
     protected function _testTables(array $tables){
         foreach($tables as $table){
             if(!$this->_validName($table)){
-                throw new \Exception("Invalid Table Name '$table'.");
+                throw new Exception("Invalid Table Name '$table'.");
             }
         }
     }
