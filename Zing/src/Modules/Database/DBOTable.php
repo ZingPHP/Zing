@@ -48,7 +48,7 @@ class DBOTable extends DBO{
 
     /**
      * Gets a subset view of the current table
-     * @return \Modules\Database\DBOView
+     * @return DBOView
      */
     public function getView(){
         return new DBOView($this->table, $this->db, $this->config);
@@ -96,29 +96,58 @@ class DBOTable extends DBO{
 
     /**
      * Inserts data into a table using key => value pairs
-     * @param array $data
-     * @return \Modules\Database\DBOTable
+     * @param array $data A column => value array to insert
+     * @param callable $onComplete A function to call when the insert finishes. The insert id will be passed as a parameter.
+     * @return DBOTable
      * @throws Exception
      */
-    public function insert(array $data){
+    public function insert(array $data, callable $onComplete = null){
         $keys   = array_keys($data);
         $values = array_values($data);
-        foreach($keys as $key){
-            if(!$this->_validName($key)){
-                throw new Exception("Column '$key' is not a valid name.");
-            }
-        }
+        $this->_testColumns($keys);
+
         $q = array_pad(array(), count($data), "?");
         $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
+
+        if($onComplete !== null && is_callable($onComplete)){
+            $id = $this->getInsertID();
+            call_user_func_array($onComplete, array($id));
+        }
+        return $this;
+    }
+
+    /**
+     * Deleates data from a table using key => value pairs
+     * @param array $data A column => value array to insert
+     * @param callable $onComplete A function to call when the insert finishes.
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function delete(array $data, callable $onComplete = null){
+        $keys   = array_keys($data);
+        $values = array_values($data);
+        $this->_testColumns($keys);
+
+        $arr = array();
+        foreach($keys as $key){
+            $arr[] = "`$key` = ?";
+        }
+
+        $this->query("delete from `$this->table` where " . implode(" and ", $arr), $values);
+
+        if($onComplete !== null && is_callable($onComplete)){
+            call_user_func_array($onComplete, array());
+        }
         return $this;
     }
 
     /**
      * Gets all rows from a table (Use with care)
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
     public function getAllRows(){
         $this->internalQuery["select"] = "select * from `$this->table`";
+        $this->go();
         return $this;
     }
 
@@ -126,7 +155,7 @@ class DBOTable extends DBO{
      * Orders the rows in the simple qurery builder
      * @param type $column
      * @param type $direction
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      * @throws Exception
      */
     public function orderRows($column, $direction = "asc"){
@@ -141,7 +170,7 @@ class DBOTable extends DBO{
     /**
      * Filter the rows in the simple query builder
      * @param type $filter
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
     public function filterRows($filter){
         $this->internalQuery["where"] = $filter;
@@ -150,9 +179,9 @@ class DBOTable extends DBO{
 
     /**
      * Executes the simple query builder
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
-    public function go(){
+    private function go(){
         $select = $this->internalQuery["select"];
         $where  = $this->internalQuery["where"];
         $group  = $this->internalQuery["group"];
@@ -198,6 +227,32 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Executes a user callback if the table contains a match
+     * @param array $columns A column => value array to search for
+     * @param callable $callback A user callback
+     * @return DBOTable
+     */
+    public function ifHas(array $columns, callable $callback){
+        if($this->has($columns)){
+            call_user_func_array($callback, array());
+        }
+        return $this;
+    }
+
+    /**
+     * Executes a user callback if the table does not contain a match
+     * @param array $columns A column => value array to search for
+     * @param callable $callback A user callback
+     * @return DBOTable
+     */
+    public function ifHasNot(array $columns, callable $callback){
+        if(!$this->has($columns)){
+            call_user_func_array($callback, array());
+        }
+        return $this;
+    }
+
+    /**
      * Gets a list of items from a table based on the primary key
      * @param mixed $id
      * @param boolean $uniq
@@ -223,7 +278,7 @@ class DBOTable extends DBO{
      * Adds a table to join on from the initial table or previous join() calls
      * @param string $table
      * @param array $on
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      * @throws Exception
      */
     public function join($table, array $on){
@@ -296,7 +351,7 @@ class DBOTable extends DBO{
      * Formats a column or an array of database columns using a callback
      * @param string|array $columns
      * @param \Modules\Database\callable $formatter
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
     public function formatColumn($columns, callable $formatter){
         if(!is_array($columns)){

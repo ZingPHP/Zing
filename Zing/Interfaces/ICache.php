@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Cache;
+namespace Interfaces;
 
 interface ICache{
 
