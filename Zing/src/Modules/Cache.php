@@ -133,7 +133,7 @@ class Cache extends Module{
         if($this->cache !== null){
             return;
         }
-        $this->setCacheEngine();
+        $this->setEngine();
     }
 
 }
