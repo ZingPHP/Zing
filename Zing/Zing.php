@@ -275,7 +275,7 @@ class Zing{
         if(empty($params)){
             loadDefault:
             $count   = 0;
-            preg_replace("/^ajax\//i", "", $path, -1, $count);
+            preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
             $is_ajax = (bool)$count;
             $params  = explode("/", trim($path, "/"));
             $this->setPage(isset($params[0]) ? $params[0] : "Home");
