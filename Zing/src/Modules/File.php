@@ -103,6 +103,20 @@ class File extends Module{
     }
 
     /**
+     * Returns the first found file in a list of files
+     * @param array $files
+     * @return string | boolean
+     */
+    public function getFirst(array $files){
+        foreach($files as $file){
+            if(is_file($file)){
+                return $file;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Creates a directory recursivly allowing for creation of nested directories.
      * @param string $pathname
      * @param int $mode
