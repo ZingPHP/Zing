@@ -118,7 +118,7 @@ class Zing{
             $page = "Home";
         }
         $_GET["page"] = $page;
-        Zing::$page = trim($page, "/");
+        Zing::$page   = trim($page, "/");
     }
 
     /**
@@ -127,7 +127,7 @@ class Zing{
      */
     final public function setAction($action){
         $_GET["action"] = $action;
-        Zing::$action = $action;
+        Zing::$action   = $action;
     }
 
     /**
@@ -265,7 +265,7 @@ class Zing{
                     }
                 }
                 $count   = 0;
-                preg_replace("/^\/ajax\//i", "", $path, -1, $count);
+                preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
                 $is_ajax = (bool)$count;
                 $this->setIsAjax($is_ajax);
                 return;
@@ -432,13 +432,13 @@ class Zing{
             throw new Exception("Host Not Found");
         }
         if(isset($this->config["route"])){
-            Zing::$page = isset($this->config["route"]["page"]) ? $this->config["route"]["page"] : Zing::$page;
+            Zing::$page   = isset($this->config["route"]["page"]) ? $this->config["route"]["page"] : Zing::$page;
             Zing::$action = isset($this->config["route"]["action"]) ? $this->config["route"]["action"] : Zing::$action;
         }
         $page_file = __DIR__ . "/../Websites/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
             require_once $page_file;
-            Zing::$page = ucfirst(Zing::$page);
+            Zing::$page   = ucfirst(Zing::$page);
             Zing::$action = lcfirst(Zing::$action);
             return true;
         }else{
@@ -495,10 +495,10 @@ class Zing{
             $this->setAction("catchAll");
         }
         if($reflection->isPublic()){
-            $class  = new Zing::$page();
+            $class      = new Zing::$page();
             $class->initPage($this->config, $this->fullConfig);
             Zing::$page = Zing::$page;
-            $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+            $action     = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
             $class->runBefore();
             call_user_func_array(array($class, Zing::$action), array());
             $class->runAfter();
