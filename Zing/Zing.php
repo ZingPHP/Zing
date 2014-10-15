@@ -14,6 +14,7 @@ use Modules\Twitter;
 use Modules\User;
 use Modules\Util;
 use Modules\Validate;
+use Modules\Session;
 
 /**
  * @property Input $input Functionality for global variables
@@ -32,6 +33,7 @@ use Modules\Validate;
  * @property Validate $validate Functionality to access dates
  * @property Cache $cache Functionality to access dates
  * @property Twitter $twitter Twitter Accessability
+ * @property Session $session Session Manager
  */
 class Zing{
 
