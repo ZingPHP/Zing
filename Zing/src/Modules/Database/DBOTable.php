@@ -252,15 +252,18 @@ class DBOTable extends DBO{
         return $this;
     }
 
-    public function with(array $columns, callable $callback){
+    public function with(array $columns, callable $foundRows, callable $foundNothing = null){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $table = $this->_buildTableSyntax();
         $where = implode("` and = ? `", $cols);
         $rows  = $this->_getAll("select * from $table where `" . $where . "` limit 1", $vals);
-
-        foreach($rows as $row){
-            call_user_func_array($callback, array($row));
+        if(count($rows) > 0){
+            foreach($rows as $row){
+                call_user_func_array($foundRows, array($row));
+            }
+        }else{
+            call_user_func_array($foundNothing, array());
         }
     }
 
