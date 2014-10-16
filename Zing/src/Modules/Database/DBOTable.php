@@ -207,6 +207,7 @@ class DBOTable extends DBO{
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
         $where = array();
         $table = $this->_buildTableSyntax();
         foreach($cols as $col){
@@ -246,6 +247,8 @@ class DBOTable extends DBO{
 
     public function with(array $columns, callable $foundRows, callable $foundNothing = null){
         $cols  = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
         $vals  = array_values($columns);
         $table = $this->_buildTableSyntax();
         $where = implode("` and = ? `", $cols);
@@ -318,6 +321,7 @@ class DBOTable extends DBO{
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
         $where = array();
         foreach($cols as $col){
             $where[] = "$col = ?";
@@ -432,6 +436,15 @@ class DBOTable extends DBO{
             }
         }
         return $joins;
+    }
+
+    protected function _formatColumns(array $columns){
+        $final = array();
+        foreach($columns as $col){
+            $newCol  = explode(".", $col);
+            $final[] = "`" . implode("`.`", $newCol) . "`";
+        }
+        return $final;
     }
 
     /**
