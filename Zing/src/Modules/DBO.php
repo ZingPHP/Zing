@@ -21,9 +21,11 @@ class DBO extends Module{
             $dsn      = "",
             $port     = 3306,
             $db       = null,
-            $sql      = null;
+            $sql      = null,
+            $dbConfig = null;
 
     public function setConnectionParams($config){
+        $this->dbConfig = $config;
         $this->dsn      = isset($config["dsn"]) ? $config["dsn"] : "mysql";
         $this->hostname = isset($config["hostname"]) ? $config["hostname"] : "";
         $this->username = isset($config["username"]) ? $config["username"] : "";
@@ -69,7 +71,7 @@ class DBO extends Module{
      * @return DBOTable
      */
     public function getTable($table_name){
-        return new DBOTable($table_name, $this->config);
+        return new DBOTable($table_name, $this->dbConfig);
     }
 
     /**
@@ -78,8 +80,7 @@ class DBO extends Module{
      * @return DBOView
      */
     public function getView($table_name){
-        $this->connect();
-        return new DBOView($table_name, $this->db, $this->config);
+        return new DBOView($table_name, $this->dbConfig);
     }
 
     /**

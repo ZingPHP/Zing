@@ -17,7 +17,7 @@ class DBOView extends DBOTable{
             $resultSetSize = 0,
             $page          = 0;
 
-    public function __construct($table_name, $db, $config){
+    public function __construct($table_name, $config){
         if(!$this->_validName($table_name)){
             throw new Exception("Invalid Table Name '$table_name'.");
         }
