@@ -506,6 +506,7 @@ class Zing{
                 call_user_func_array(array($class, Zing::$action), array());
             }catch(Exception $e){
                 echo $e->getMessage() . " in <b>" . $e->getFile() . "</b> on line " . $e->getLine();
+                exit;
             }
             $class->runAfter();
 
