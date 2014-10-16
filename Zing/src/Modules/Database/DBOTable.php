@@ -293,23 +293,16 @@ class DBOTable extends DBO{
      * @throws Exception
      */
     public function join($table, array $on){
-        $keys  = array_keys($on);
-        $vals  = array_values($on);
-        $joins = array();
-        foreach($keys as $k => $v){
-            if(is_int($k) && $this->_validName($v)){
-                $joins[] = "using({$vals[$k]})";
-            }else{
-                if(!$this->_validName($k)){
-                    throw new Exception("Invalid name '$k'");
-                }
-                if(!$this->_validName($v)){
-                    throw new Exception("Invalid name '$v'");
-                }
-                $joins[] = "$k = {$vals[$k]}";
-            }
-        }
-        $this->joins[$table] = $joins;
+        $joins = $this->_buildJoin($on);
+
+        $this->joins[$table . "|join"] = $joins;
+        return $this;
+    }
+
+    public function leftJoin($table, array $on){
+        $joins = $this->_buildJoin($on);
+
+        $this->joins[$table . "|left join"] = $joins;
         return $this;
     }
 
@@ -392,8 +385,9 @@ class DBOTable extends DBO{
      */
     protected function _buildTableSyntax(){
         $str = $this->table;
-        foreach($this->joins as $table => $join){
-            $str .= " join $table ";
+        foreach($this->joins as $tblJoin => $join){
+            list($table, $join) = explode("|", $tblJoin);
+            $str .= " $join $table ";
             foreach($join as $j){
                 $str .= " $j ";
             }
@@ -418,6 +412,26 @@ class DBOTable extends DBO{
             $array = $this->_getRow("select * from `$this->table` where `$column` = ? limit 1", array($value));
         }
         $this->setArray($array);
+    }
+
+    protected function _buildJoin(array $on){
+        $keys  = array_keys($on);
+        $vals  = array_values($on);
+        $joins = array();
+        foreach($keys as $k => $v){
+            if(is_int($k) && $this->_validName($v)){
+                $joins[] = "using({$vals[$k]})";
+            }else{
+                if(!$this->_validName($k)){
+                    throw new Exception("Invalid name '$k'");
+                }
+                if(!$this->_validName($v)){
+                    throw new Exception("Invalid name '$v'");
+                }
+                $joins[] = "$k = {$vals[$k]}";
+            }
+        }
+        return $joins;
     }
 
     /**
