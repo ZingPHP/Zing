@@ -251,8 +251,8 @@ class DBOTable extends DBO{
         $cols  = $this->_formatColumns($cols);
         $vals  = array_values($columns);
         $table = $this->_buildTableSyntax();
-        $where = implode("` and = ? `", $cols);
-        $rows  = $this->_getAll("select * from $table where `" . $where . "` = ? limit 1", $vals);
+        $where = implode(" and = ? ", $cols);
+        $rows  = $this->_getAll("select * from $table where " . $where . " = ? limit 1", $vals);
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
