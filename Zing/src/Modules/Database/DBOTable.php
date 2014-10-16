@@ -47,14 +47,6 @@ class DBOTable extends DBO{
     }
 
     /**
-     * Gets a subset view of the current table
-     * @return DBOView
-     */
-    public function getView(){
-        return new DBOView($this->table, $this->db, $this->config);
-    }
-
-    /**
      * creates a multirow insert query
      * @param array $columns  Array of columns to use
      * @param array $params   Multilevel array of values
