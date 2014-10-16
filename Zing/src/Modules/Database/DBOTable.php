@@ -23,8 +23,8 @@ class DBOTable extends DBO{
         "group"  => "",
     );
 
-    public function __construct($table_name, $db, $config){
-        $this->db = $db;
+    public function __construct($table_name, $config){
+        $this->setConnectionParams($config);
         if(!$this->_validName($table_name)){
             throw new Exception("Invalid Table Name '$table_name'.");
         }

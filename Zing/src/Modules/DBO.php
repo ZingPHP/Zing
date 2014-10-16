@@ -69,8 +69,7 @@ class DBO extends Module{
      * @return DBOTable
      */
     public function getTable($table_name){
-        $this->connect();
-        return new DBOTable($table_name, $this->db, $this->config);
+        return new DBOTable($table_name, $this->config);
     }
 
     /**
