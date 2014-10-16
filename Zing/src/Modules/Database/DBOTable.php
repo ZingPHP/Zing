@@ -386,8 +386,8 @@ class DBOTable extends DBO{
     protected function _buildTableSyntax(){
         $str = $this->table;
         foreach($this->joins as $tblJoin => $join){
-            list($table, $join) = explode("|", $tblJoin);
-            $str .= " $join $table ";
+            list($table, $joinType) = explode("|", $tblJoin);
+            $str .= " $joinType $table ";
             foreach($join as $j){
                 $str .= " $j ";
             }
