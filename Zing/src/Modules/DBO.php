@@ -240,7 +240,7 @@ class DBO extends Module{
      * @return boolean
      */
     protected function _validName($string){
-        return !preg_match("/[^a-zA-Z0-9\$_]/i", $string);
+        return !preg_match("/[^a-zA-Z0-9\$_\.]/i", $string);
     }
 
     protected function _getAll($query, array $params = array()){
