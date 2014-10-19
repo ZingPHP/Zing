@@ -142,13 +142,23 @@ class DBO extends Module{
         return $this->sql->fetchColumn(0);
     }
 
+    /**
+     * Gets the next row in the data set
+     * @param int $style
+     * @return mixed
+     */
     public function getNext($style = PDO::FETCH_ASSOC){
         return $this->sql->fetch($style);
     }
 
-    public function getNextSet($fetch = DBO::GET_ALL){
+    /**
+     * Gets the next dataset in a multi dataset query
+     * @param int $style
+     * @return mixed
+     */
+    public function getNextSet($style = DBO::GET_ALL){
         $this->sql->nextRowset();
-        switch($fetch){
+        switch($style){
             case DBO::GET_ALL:
                 return $this->sql->fetchAll();
             case DBO::GET_ROW:
