@@ -21,6 +21,7 @@ class DBOTable extends DBO{
         "order"  => "",
         "where"  => "",
         "group"  => "",
+        "params" => array()
     );
 
     public function __construct($table_name, $config){
@@ -84,6 +85,7 @@ class DBOTable extends DBO{
         }catch(Exception $e){
             $this->rollBackTransaction();
         }
+        return $this;
     }
 
     /**
@@ -137,9 +139,10 @@ class DBOTable extends DBO{
      * Gets all rows from a table (Use with care)
      * @return DBOTable
      */
-    public function getAllRows(){
-        $this->internalQuery["select"] = "select * from `$this->table`";
-        $this->go();
+    public function getAllRows(array $params = array()){
+        $table                         = $this->_buildTableSyntax();
+        $this->internalQuery["select"] = "select * from $table";
+        $this->go($params);
         return $this;
     }
 
@@ -165,7 +168,22 @@ class DBOTable extends DBO{
      * @return DBOTable
      */
     public function filterRows($filter){
-        $this->internalQuery["where"] = $filter;
+        $this->internalQuery["where"] = "where " . $filter;
+        return $this;
+    }
+
+    /**
+     * Filter the rows using an array in the simple query builder
+     * @param array $columns
+     * @return DBOTable
+     */
+    public function arrayFilterRows(array $columns){
+        $cols = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols = $this->_formatColumns($cols);
+
+        $this->internalQuery["where"]  = "where " . implode(" and = ?", $cols) . " = ?";
+        $this->internalQuery["params"] = array_values($columns);
         return $this;
     }
 
@@ -178,7 +196,7 @@ class DBOTable extends DBO{
         $where  = $this->internalQuery["where"];
         $group  = $this->internalQuery["group"];
         $order  = $this->internalQuery["order"];
-        $this->getAll("$select $where $group $order");
+        $this->getAll("$select $where $group $order", $this->internalQuery["params"]);
         return $this;
     }
 
@@ -227,7 +245,7 @@ class DBOTable extends DBO{
      */
     public function ifHas(array $columns, callable $callback){
         if($this->has($columns)){
-            call_user_func_array($callback, array());
+            call_user_func_array($callback, array($columns));
         }
         return $this;
     }
@@ -240,7 +258,7 @@ class DBOTable extends DBO{
      */
     public function ifHasNot(array $columns, callable $callback){
         if(!$this->has($columns)){
-            call_user_func_array($callback, array());
+            call_user_func_array($callback, array($columns));
         }
         return $this;
     }
@@ -264,6 +282,7 @@ class DBOTable extends DBO{
                 call_user_func_array($foundNothing, array());
             }
         }
+        return $this;
     }
 
     /**
@@ -317,7 +336,7 @@ class DBOTable extends DBO{
      * @return DBOTable
      * @throws Exception
      */
-    public function getItemByColumns(array $columns, $uniq = false, array $orderBy = array()){
+    public function getItemsByColumn(array $columns, $uniq = false, array $orderBy = array()){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
