@@ -22,6 +22,12 @@ class Session extends Module{
         return $default;
     }
 
+    public function delete($key){
+        if(isset($_SESSION[$key])){
+            unset($_SESSION[$key]);
+        }
+    }
+
     public function destroy($key = null){
         if($key === null){
             $_SESSION = null;
