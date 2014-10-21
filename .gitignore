@@ -2,5 +2,3 @@ templates_c/
 nbproject/
 Zing/cache/
 Zing/config.php
-Websites/*/
-!Websites/zingphp.org/
