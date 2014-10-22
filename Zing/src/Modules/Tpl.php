@@ -49,12 +49,13 @@ class Tpl extends Module{
         $this->tplEngine->assign($key, $value);
     }
 
-    public function append($key, $value){
+    public function append($key, $value = ""){
         if($this->tplEngine == null){
             if(!$this->setDefaultEngine()){
                 throw new Exception("Template Engine Not Set");
             }
         }
+        $this->tplEngine->assign($key, $value);
     }
 
     public function display($filename){

@@ -40,7 +40,7 @@ class ZingTemplateLoader implements ZingTemplate{
             }
         }
         if(is_array($value)){
-            array_push($this->unassgned, $value);
+            array_push($this->unassgned[$key], $value);
         }else{
             $this->unassgned[$key] .= $value;
         }

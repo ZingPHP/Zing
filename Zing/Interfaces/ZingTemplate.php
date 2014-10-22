@@ -9,4 +9,6 @@ interface ZingTemplate{
     public function render($filename);
 
     public function assign($key, $value = "");
+
+    public function append($key, $value = "");
 }
