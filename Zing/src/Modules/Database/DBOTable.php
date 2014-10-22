@@ -140,7 +140,7 @@ class DBOTable extends DBO{
      * @param array $setters
      * @param array $filters
      */
-    public function update(array $setters, array $filters){
+    public function update(array $setters, array $filters, callable $onComplete = null){
         $keys1 = array_keys($setters);
         $vals1 = array_values($setters);
         $this->_testColumns($keys1);
@@ -159,6 +159,10 @@ class DBOTable extends DBO{
         $where = $this->_buildWhere($where, $vals2);
 
         $this->query("update $table set $set where $where", array_merge($vals1, $vals2));
+        if($onComplete !== null && is_callable($onComplete)){
+            $affected = $this->getAffectedRows();
+            call_user_func_array($onComplete, array($affected));
+        }
     }
 
     /**
