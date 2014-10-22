@@ -55,7 +55,7 @@ class Tpl extends Module{
                 throw new Exception("Template Engine Not Set");
             }
         }
-        $this->tplEngine->assign($key, $value);
+        $this->tplEngine->append($key, $value);
     }
 
     public function display($filename){
