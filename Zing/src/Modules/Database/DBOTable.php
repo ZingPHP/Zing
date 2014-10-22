@@ -123,7 +123,7 @@ class DBOTable extends DBO{
         $this->_testColumns($keys);
         $cols   = $this->_formatColumns($cols);
 
-        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $values);
 
         $this->query("delete from `$this->table` where " . $where, $values);
@@ -181,7 +181,7 @@ class DBOTable extends DBO{
         $this->_testColumns($cols);
         $cols = $this->_formatColumns($cols);
 
-        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $columns);
 
         $this->internalQuery["where"]  = "where " . $where;
@@ -230,7 +230,7 @@ class DBOTable extends DBO{
         $cols  = $this->_formatColumns($cols);
         $table = $this->_buildTableSyntax();
 
-        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
         $has = (bool)$this->getOne("select 1 from $table where " . $where . " limit 1", $vals);
@@ -272,7 +272,7 @@ class DBOTable extends DBO{
         $vals  = array_values($columns);
         $table = $this->_buildTableSyntax();
 
-        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
         $rows = $this->_getAll("select * from $table where " . $where, $vals);
