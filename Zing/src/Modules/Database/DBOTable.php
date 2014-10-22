@@ -16,6 +16,7 @@ class DBOTable extends DBO{
     private $table_primary_keys = array();
     protected $table;
     private $joins              = array();
+    private $columns            = array();
     private $internalQuery      = array(
         "select" => "",
         "order"  => "",
@@ -275,7 +276,8 @@ class DBOTable extends DBO{
         $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        $rows = $this->_getAll("select * from $table where " . $where, $vals);
+        $rows          = $this->_getAll("select " . implode(",", $this->columns) . " from $table where " . $where, $vals);
+        $this->columns = array();
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
@@ -331,6 +333,14 @@ class DBOTable extends DBO{
 
         $this->joins[$table . "|left join"] = $joins;
         return $this;
+    }
+
+    public function setColumns(array $columns){
+        $keys          = array_keys($columns);
+        $cols          = array_values($columns);
+        $this->_testColumns($cols);
+        $cols          = $this->_formatColumns($cols);
+        $this->columns = array_combine($keys, $cols);
     }
 
     /**
