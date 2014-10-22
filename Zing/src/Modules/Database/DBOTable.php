@@ -121,13 +121,12 @@ class DBOTable extends DBO{
         $keys   = array_keys($data);
         $values = array_values($data);
         $this->_testColumns($keys);
+        $cols   = $this->_formatColumns($cols);
 
-        $arr = array();
-        foreach($keys as $key){
-            $arr[] = "`$key` = ?";
-        }
+        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $values);
 
-        $this->query("delete from `$this->table` where " . implode(" and ", $arr), $values);
+        $this->query("delete from `$this->table` where " . $where, $values);
 
         if($onComplete !== null && is_callable($onComplete)){
             call_user_func_array($onComplete, array());
@@ -182,7 +181,10 @@ class DBOTable extends DBO{
         $this->_testColumns($cols);
         $cols = $this->_formatColumns($cols);
 
-        $this->internalQuery["where"]  = "where " . implode(" and = ?", $cols) . " = ?";
+        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $columns);
+
+        $this->internalQuery["where"]  = "where " . $where;
         $this->internalQuery["params"] = array_values($columns);
         return $this;
     }
@@ -226,12 +228,12 @@ class DBOTable extends DBO{
         $vals  = array_values($columns);
         $this->_testColumns($cols);
         $cols  = $this->_formatColumns($cols);
-        $where = array();
         $table = $this->_buildTableSyntax();
-        foreach($cols as $col){
-            $where[] = "$col = ?";
-        }
-        $has = (bool)$this->getOne("select 1 from $table where " . implode(" and ", $where) . " limit 1", $vals);
+
+        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        $has = (bool)$this->getOne("select 1 from $table where " . $where . " limit 1", $vals);
 
         $this->joins = array();
         return $has;
@@ -269,8 +271,11 @@ class DBOTable extends DBO{
         $cols  = $this->_formatColumns($cols);
         $vals  = array_values($columns);
         $table = $this->_buildTableSyntax();
-        $where = implode(" and = ? ", $cols);
-        $rows  = $this->_getAll("select * from $table where " . $where . " = ? limit 1", $vals);
+
+        $where = implode(" and = ? ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        $rows = $this->_getAll("select * from $table where " . $where . " limit 1", $vals);
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
@@ -416,6 +421,16 @@ class DBOTable extends DBO{
             }
         }
         return $str;
+    }
+
+    protected function _buildWhere($where, $values){
+        $groups = explode("?", $where);
+        foreach($values as $offset => $value){
+            if(is_null($value)){
+                $groups[$offset] = str_replace("=", "is", $groups[$offset]);
+            }
+        }
+        return implode("?", $groups);
     }
 
     /**
