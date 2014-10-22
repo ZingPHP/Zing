@@ -140,8 +140,10 @@ class DBOTable extends DBO{
      * @return DBOTable
      */
     public function getAllRows(array $params = array()){
-        $table                         = $this->_buildTableSyntax();
-        $this->internalQuery["select"] = "select * from $table";
+        $table   = $this->_buildTableSyntax();
+        $selCols = $this->_buildColumns();
+
+        $this->internalQuery["select"] = "select $selCols from $table";
         $this->go($params);
         return $this;
     }
@@ -195,11 +197,12 @@ class DBOTable extends DBO{
      * @return DBOTable
      */
     private function go(){
-        $select = $this->internalQuery["select"];
-        $where  = $this->internalQuery["where"];
-        $group  = $this->internalQuery["group"];
-        $order  = $this->internalQuery["order"];
+        $select        = $this->internalQuery["select"];
+        $where         = $this->internalQuery["where"];
+        $group         = $this->internalQuery["group"];
+        $order         = $this->internalQuery["order"];
         $this->getAll("$select $where $group $order", $this->internalQuery["params"]);
+        $this->columns = array();
         return $this;
     }
 
@@ -276,10 +279,7 @@ class DBOTable extends DBO{
         $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        $selCols = implode(",", $this->columns);
-        if(empty($selCols)){
-            $selCols = "*";
-        }
+        $selCols = $this->_buildColumns();
 
         $rows          = $this->_getAll("select $selCols from $table where " . $where, $vals);
         $this->columns = array();
@@ -308,14 +308,17 @@ class DBOTable extends DBO{
         $table  = $this->_buildTableSyntax();
         $column = $this->_getPrimary();
         $extra  = $uniq ? "limit 1" : "";
-        $query  = "select * from $table where $column = ? $extra";
+
+        $selCols = $this->_buildColumns();
+        $query   = "select $selCols from $table where $column = ? $extra";
         if($uniq){
             $array = $this->_getRow($query, array($id));
         }else{
             $array = $this->_getAll($query, array($id));
         }
         $this->setArray($array);
-        $this->joins = array();
+        $this->joins   = array();
+        $this->columns = array();
         return $this;
     }
 
@@ -395,14 +398,16 @@ class DBOTable extends DBO{
         if(count($order) > 0){
             $orderStr = "order by " . implode(",", $order);
         }
-        $table = $this->_buildTableSyntax();
+        $table   = $this->_buildTableSyntax();
+        $selCols = $this->_buildColumns();
         if((bool)$uniq){
-            $array = $this->_getRow("select * from $table where " . implode(" and ", $where) . " $orderStr limit 1", $vals);
+            $array = $this->_getRow("select $selCols from $table where " . implode(" and ", $where) . " $orderStr limit 1", $vals);
         }else{
-            $array = $this->_getAll("select * from $table where " . implode(" and ", $where) . " $orderStr", $vals);
+            $array = $this->_getAll("select $selCols from $table where " . implode(" and ", $where) . " $orderStr", $vals);
         }
         $this->setArray($array);
-        $this->joins = array();
+        $this->joins   = array();
+        $this->columns = array();
         return $this;
     }
 
@@ -432,6 +437,18 @@ class DBOTable extends DBO{
 
     public function count(){
         return count($this->toArray());
+    }
+
+    /**
+     * Builds the columns to display
+     * @return string
+     */
+    protected function _buildColumns(){
+        $selCols = implode(",", $this->columns);
+        if(empty($selCols)){
+            $selCols = "*";
+        }
+        return $selCols;
     }
 
     /**
@@ -479,11 +496,13 @@ class DBOTable extends DBO{
         if(!$this->_validName($column)){
             throw new Exception("Invalid column format '$column'.");
         }
+        $selCols = $this->_buildColumns();
         if(!(bool)$uniq){
-            $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+            $array = $this->_getAll("select $selCols from `$this->table` where `$column` = ?", array($value));
         }else{
-            $array = $this->_getRow("select * from `$this->table` where `$column` = ? limit 1", array($value));
+            $array = $this->_getRow("select $selCols from `$this->table` where `$column` = ? limit 1", array($value));
         }
+        $this->columns = array();
         $this->setArray($array);
     }
 
