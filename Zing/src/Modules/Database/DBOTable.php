@@ -136,6 +136,32 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Updates a Table
+     * @param array $setters
+     * @param array $filters
+     */
+    public function update(array $setters, array $filters){
+        $keys1 = array_keys($setters);
+        $vals1 = array_values($setters);
+        $this->_testColumns($keys1);
+        $keys1 = $this->_formatColumns($keys1);
+
+        $keys2 = array_keys($filters);
+        $vals2 = array_values($filters);
+        $this->_testColumns($keys2);
+        $keys2 = $this->_formatColumns($keys2);
+
+        $table = $this->_buildTableSyntax();
+
+        $set = implode(" = ?, ", $keys1) . " = ?";
+
+        $where = implode(" = ? and ", $keys2) . " = ?";
+        $where = $this->_buildWhere($where, $vals2);
+
+        $this->query("update $table set $set where $where", array_merge($vals1, $vals2));
+    }
+
+    /**
      * Gets all rows from a table (Use with care)
      * @return DBOTable
      */
