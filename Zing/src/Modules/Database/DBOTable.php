@@ -413,12 +413,21 @@ class DBOTable extends DBO{
      */
     protected function _buildTableSyntax(){
         $str = $this->table;
+        var_dump($this->joins);
         foreach($this->joins as $tblJoin => $join){
             list($table, $joinType) = explode("|", $tblJoin);
             $str .= " $joinType $table ";
+            $stritm = array();
+            $i      = false;
             foreach($join as $j){
-                $str .= " $j ";
+                $extra = "";
+                if(strpos($j, "using(") === false && !$i){
+                    $extra = "on";
+                }
+                $i        = true;
+                $stritm[] = " $extra $j ";
             }
+            $str .= implode(" and ", $stritm);
         }
         return $str;
     }
@@ -456,7 +465,7 @@ class DBOTable extends DBO{
         $keys  = array_keys($on);
         $vals  = array_values($on);
         $joins = array();
-        foreach($keys as $k => $v){
+        foreach($on as $k => $v){
             if(is_int($k) && $this->_validName($v)){
                 $joins[] = "using({$vals[$k]})";
             }else{
@@ -466,7 +475,7 @@ class DBOTable extends DBO{
                 if(!$this->_validName($v)){
                     throw new Exception("Invalid name '$v'");
                 }
-                $joins[] = "$k = {$vals[$k]}";
+                $joins[] = "$k = {$on[$k]}";
             }
         }
         return $joins;
