@@ -275,7 +275,7 @@ class DBOTable extends DBO{
         $where = implode(" and = ? ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        $rows = $this->_getAll("select * from $table where " . $where . " limit 1", $vals);
+        $rows = $this->_getAll("select * from $table where " . $where, $vals);
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
