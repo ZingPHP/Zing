@@ -413,7 +413,6 @@ class DBOTable extends DBO{
      */
     protected function _buildTableSyntax(){
         $str = $this->table;
-        var_dump($this->joins);
         foreach($this->joins as $tblJoin => $join){
             list($table, $joinType) = explode("|", $tblJoin);
             $str .= " $joinType $table ";
