@@ -276,7 +276,12 @@ class DBOTable extends DBO{
         $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        $rows          = $this->_getAll("select " . implode(",", $this->columns) . " from $table where " . $where, $vals);
+        $selCols = implode(",", $this->columns);
+        if(empty($selCols)){
+            $selCols = "*";
+        }
+
+        $rows          = $this->_getAll("select $selCols from $table where " . $where, $vals);
         $this->columns = array();
         if(count($rows) > 0){
             if(is_callable($foundRows)){
@@ -328,6 +333,12 @@ class DBOTable extends DBO{
         return $this;
     }
 
+    /**
+     * Adds a table to left join on from the initial table or previous join() calls
+     * @param type $table
+     * @param array $on
+     * @return DBOTable
+     */
     public function leftJoin($table, array $on){
         $joins = $this->_buildJoin($on);
 
@@ -335,12 +346,18 @@ class DBOTable extends DBO{
         return $this;
     }
 
+    /**
+     * Sets the returned Columns
+     * @param array $columns
+     * @return DBOTable
+     */
     public function setColumns(array $columns){
         $keys          = array_keys($columns);
         $cols          = array_values($columns);
         $this->_testColumns($cols);
         $cols          = $this->_formatColumns($cols);
         $this->columns = array_combine($keys, $cols);
+        return $this;
     }
 
     /**
