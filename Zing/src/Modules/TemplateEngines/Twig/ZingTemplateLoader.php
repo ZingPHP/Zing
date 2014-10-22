@@ -34,4 +34,19 @@ class ZingTemplateLoader implements ZingTemplate{
         $this->vars[$key] = $value;
     }
 
+    public function append($key, $value = ""){
+        if(!array_key_exists($key, $this->vars)){
+            if(is_array($value)){
+                $this->vars[$key] = array();
+            }else{
+                $this->vars[$key] = "";
+            }
+        }
+        if(is_array($value)){
+            array_push($this->vars, $value);
+        }else{
+            $this->vars[$key] .= $value;
+        }
+    }
+
 }
