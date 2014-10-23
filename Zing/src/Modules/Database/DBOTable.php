@@ -299,6 +299,13 @@ class DBOTable extends DBO{
         return $this;
     }
 
+    /**
+     * With each item found run a user defined callback
+     * @param array $columns
+     * @param callable $foundRows
+     * @param callable $foundNothing
+     * @return DBOTable
+     */
     public function with(array $columns, callable $foundRows, callable $foundNothing = null){
         $cols  = array_keys($columns);
         $this->_testColumns($cols);
@@ -323,6 +330,35 @@ class DBOTable extends DBO{
             if(is_callable($foundNothing)){
                 call_user_func_array($foundNothing, array());
             }
+        }
+        return $this;
+    }
+
+    /**
+     * Get a row from the database and run a callback on it
+     * @param array $columns
+     * @param callable $foundRows
+     * @param callable $foundNothing
+     * @return DBOTable
+     */
+    public function get(array $columns, callable $foundRows, callable $foundNothing = null){
+        $cols  = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        $selCols = $this->_buildColumns();
+
+        $rows          = $this->_getRow("select $selCols from $table where " . $where . " limit 1", $vals);
+        $this->columns = array();
+        if(count($rows) > 0 && is_callable($foundRows)){
+            call_user_func_array($foundRows, array($row, $r));
+        }elseif(is_callable($foundNothing)){
+            call_user_func_array($foundNothing, array());
         }
         return $this;
     }
