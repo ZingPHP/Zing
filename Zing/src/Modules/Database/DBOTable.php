@@ -277,7 +277,7 @@ class DBOTable extends DBO{
      * @return boolean
      * @throws Exception
      */
-    public function has(array $columns){
+    public function has(array $columns, callable $doesHave = null, callable $doesNotHave = null){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
@@ -288,6 +288,12 @@ class DBOTable extends DBO{
         $where = $this->_buildWhere($where, $vals);
 
         $has = (bool)$this->getOne("select 1 from $table where " . $where . " limit 1", $vals);
+
+        if($has && $doesHave !== null && is_callable($doesHave)){
+            call_user_func_array($doesHave, array());
+        }elseif(!$has && $doesNotHave !== null && is_callable($doesNotHave)){
+            call_user_func_array($doesNotHave, array());
+        }
 
         $this->joins = array();
         return $has;
