@@ -289,7 +289,6 @@ class DBOTable extends DBO{
 
         $row = $this->_getRow($q   = "select * from $table where " . $where . " limit 1", $vals);
         $has = count($row) > 0 ? true : false;
-        var_dump($row, $q, $vals);
 
         if($has && $doesHave !== null && is_callable($doesHave)){
             call_user_func_array($doesHave, array($row));
