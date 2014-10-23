@@ -17,6 +17,7 @@ class DBOTable extends DBO{
     protected $table;
     private $joins              = array();
     private $columns            = array();
+    private $orderBy            = array();
     private $internalQuery      = array(
         "select" => "",
         "order"  => "",
@@ -249,6 +250,21 @@ class DBOTable extends DBO{
 
         $this->joins = array();
         return $has;
+    }
+
+    /**
+     * Order items
+     * @param array $order
+     */
+    public function orderBy(array $order){
+        $this->orderBy = array();
+        foreach($order as $k => $v){
+            if(is_int($k)){
+                $this->orderBy[$v] => "asc";
+            }else{
+                $this->orderBy[$k] => in_array(strtolower($v), array("asc", "desc")) ? $v : "asc";
+            }
+        }
     }
 
     /**
