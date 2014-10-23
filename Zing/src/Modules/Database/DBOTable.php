@@ -547,11 +547,18 @@ class DBOTable extends DBO{
         return $selCols;
     }
 
+    /**
+     * Builds the order clause
+     * @return string
+     */
     protected function _buildOrder(){
         $dir = array();
+        if(empty($this->orderByCol)){
+            return "";
+        }
         foreach($this->orderByCol as $col => $dirc){
             $c     = $this->_formatColumns(array($col));
-            $dir[] = "$c " . (in_array($dirc, array("asc", "desc")) ? $dirc : "asc");
+            $dir[] = "$c[0] " . (in_array($dirc, array("asc", "desc")) ? $dirc : "asc");
         }
         return implode(", ", $dir);
     }
