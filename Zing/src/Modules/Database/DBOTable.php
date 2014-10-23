@@ -287,12 +287,13 @@ class DBOTable extends DBO{
         $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        $has = (bool)$this->getOne("select 1 from $table where " . $where . " limit 1", $vals);
+        $row = $this->getRow("select * from $table where " . $where . " limit 1", $vals);
+        $has = count($row) > 0 ? true : false;
 
         if($has && $doesHave !== null && is_callable($doesHave)){
-            call_user_func_array($doesHave, array());
+            call_user_func_array($doesHave, array($row));
         }elseif(!$has && $doesNotHave !== null && is_callable($doesNotHave)){
-            call_user_func_array($doesNotHave, array());
+            call_user_func_array($doesNotHave, array($row));
         }
 
         $this->joins = array();
