@@ -253,8 +253,9 @@ class DBOTable extends DBO{
     }
 
     /**
-     * Order items
+     * Order results
      * @param array $order
+     * @return DBOTable
      */
     public function orderBy(array $order){
         $this->orderByCol = array();
@@ -267,6 +268,7 @@ class DBOTable extends DBO{
                 $this->orderByCol[$k] = in_array(strtolower($v), array("asc", "desc")) ? $v : "asc";
             }
         }
+        return $this;
     }
 
     /**
