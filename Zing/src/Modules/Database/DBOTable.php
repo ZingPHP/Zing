@@ -17,7 +17,7 @@ class DBOTable extends DBO{
     protected $table;
     private $joins              = array();
     private $columns            = array();
-    private $orderBy            = array();
+    private $orderByCol         = array();
     private $internalQuery      = array(
         "select" => "",
         "order"  => "",
@@ -257,12 +257,14 @@ class DBOTable extends DBO{
      * @param array $order
      */
     public function orderBy(array $order){
-        $this->orderBy = array();
+        $this->orderByCol = array();
         foreach($order as $k => $v){
             if(is_int($k)){
-                $this->orderBy[$v] => "asc";
+                $this->_testColumns(array($v));
+                $this->orderByCol[$v] = "asc";
             }else{
-                $this->orderBy[$k] => in_array(strtolower($v), array("asc", "desc")) ? $v : "asc";
+                $this->_testColumns(array($k));
+                $this->orderByCol[$k] = in_array(strtolower($v), array("asc", "desc")) ? $v : "asc";
             }
         }
     }
@@ -333,9 +335,12 @@ class DBOTable extends DBO{
         $where = $this->_buildWhere($where, $vals);
 
         $selCols = $this->_buildColumns();
+        $order   = $this->_buildOrder();
+        $order   = !empty($order) ? "order by $order" : "";
 
-        $rows          = $this->_getAll("select $selCols from $table where " . $where, $vals);
-        $this->columns = array();
+        $rows             = $this->_getAll("select $selCols from $table where " . $where . " " . $order, $vals);
+        $this->columns    = array();
+        $this->orderByCol = array();
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
@@ -368,9 +373,12 @@ class DBOTable extends DBO{
         $where = $this->_buildWhere($where, $vals);
 
         $selCols = $this->_buildColumns();
+        $order   = $this->_buildOrder();
+        $order   = !empty($order) ? "order by $order" : "";
 
-        $rows          = $this->_getRow("select $selCols from $table where " . $where . " limit 1", $vals);
-        $this->columns = array();
+        $rows             = $this->_getRow("select $selCols from $table where " . $where . " " . $order . " limit 1", $vals);
+        $this->columns    = array();
+        $this->orderByCol = array();
         if(count($rows) > 0 && is_callable($foundRows)){
             call_user_func_array($foundRows, array($row, $r));
         }elseif(is_callable($foundNothing)){
@@ -391,16 +399,20 @@ class DBOTable extends DBO{
         $column = $this->_getPrimary();
         $extra  = $uniq ? "limit 1" : "";
 
+        $order = $this->_buildOrder();
+        $order = !empty($order) ? "order by $order" : "";
+
         $selCols = $this->_buildColumns();
-        $query   = "select $selCols from $table where $column = ? $extra";
+        $query   = "select $selCols from $table where $column = ? $order $extra";
         if($uniq){
             $array = $this->_getRow($query, array($id));
         }else{
             $array = $this->_getAll($query, array($id));
         }
         $this->setArray($array);
-        $this->joins   = array();
-        $this->columns = array();
+        $this->joins      = array();
+        $this->columns    = array();
+        $this->orderByCol = array();
         return $this;
     }
 
@@ -531,6 +543,15 @@ class DBOTable extends DBO{
             $selCols = "*";
         }
         return $selCols;
+    }
+
+    protected function _buildOrder(){
+        $dir = array();
+        foreach($this->orderByCol as $col => $dirc){
+            $c     = $this->_formatColumns(array($col));
+            $dir[] = "$c " . (in_array($dirc, array("asc", "desc")) ? $dirc : "asc");
+        }
+        return implode(", ", $dir);
     }
 
     /**
