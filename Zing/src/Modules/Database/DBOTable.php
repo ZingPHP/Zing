@@ -385,11 +385,12 @@ class DBOTable extends DBO{
         $order   = $this->_buildOrder();
         $order   = !empty($order) ? "order by $order" : "";
 
-        $rows             = $this->_getRow("select $selCols from $table where " . $where . " " . $order . " limit 1", $vals);
+        $row = $this->_getRow("select $selCols from $table where " . $where . " " . $order . " limit 1", $vals);
+
         $this->columns    = array();
         $this->orderByCol = array();
-        if(count($rows) > 0 && is_callable($foundRows)){
-            call_user_func_array($foundRows, array($row, $r));
+        if(count($row) > 0 && is_callable($foundRows)){
+            call_user_func_array($foundRows, array($row));
         }elseif(is_callable($foundNothing)){
             call_user_func_array($foundNothing, array());
         }
