@@ -287,8 +287,9 @@ class DBOTable extends DBO{
         $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        $row = $this->getRow("select * from $table where " . $where . " limit 1", $vals);
+        $row = $this->_getRow($q   = "select * from $table where " . $where . " limit 1", $vals);
         $has = count($row) > 0 ? true : false;
+        var_dump($row, $q, $vals);
 
         if($has && $doesHave !== null && is_callable($doesHave)){
             call_user_func_array($doesHave, array($row));
