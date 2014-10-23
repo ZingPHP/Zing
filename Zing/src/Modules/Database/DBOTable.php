@@ -349,6 +349,7 @@ class DBOTable extends DBO{
 
         $rows             = $this->_getAll("select $selCols from $table where " . $where . " " . $order, $vals);
         $this->columns    = array();
+        $this->joins      = array();
         $this->orderByCol = array();
         if(count($rows) > 0){
             if(is_callable($foundRows)){
@@ -388,6 +389,7 @@ class DBOTable extends DBO{
         $row = $this->_getRow("select $selCols from $table where " . $where . " " . $order . " limit 1", $vals);
 
         $this->columns    = array();
+        $this->joins      = array();
         $this->orderByCol = array();
         if(count($row) > 0 && is_callable($foundRows)){
             call_user_func_array($foundRows, array($row));
