@@ -15,6 +15,7 @@ class DBOTable extends DBO{
 
     private $table_primary_keys = array();
     protected $table;
+    private $limit              = 0;
     private $joins              = array();
     private $columns            = array();
     private $orderByCol         = array();
@@ -272,6 +273,16 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Sets the number of rows to return
+     * @param int $limit
+     * @return DBOTable
+     */
+    public function setLimit($limit){
+        $this->limit = (int)$limit;
+        return $this;
+    }
+
+    /**
      * Tests a table to see if a row exists using an array.
      * @param array $columns
      * @return boolean
@@ -347,10 +358,13 @@ class DBOTable extends DBO{
         $order   = $this->_buildOrder();
         $order   = !empty($order) ? "order by $order" : "";
 
-        $rows             = $this->_getAll("select $selCols from $table where " . $where . " " . $order, $vals);
+        $limit = (int)$this->limit > 0 ? "limit $this->limit" : "";
+
+        $rows             = $this->_getAll("select $selCols from $table where " . $where . " " . $order . " $limit", $vals);
         $this->columns    = array();
         $this->joins      = array();
         $this->orderByCol = array();
+        $this->limit      = 0;
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
