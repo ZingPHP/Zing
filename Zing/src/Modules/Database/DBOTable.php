@@ -400,6 +400,23 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Get the total number of columns
+     * @param array $columns
+     * @return int
+     */
+    public function getTotal(array $columns){
+        $cols  = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        return (int)$this->_getOne("select count(*) from $table where " . $where . " limit 1", $vals);
+    }
+
+    /**
      * Gets a list of items from a table based on the primary key
      * @param mixed $id
      * @param boolean $uniq
