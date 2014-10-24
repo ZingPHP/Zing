@@ -291,9 +291,9 @@ class DBOTable extends DBO{
         $has = is_array($row) && count($row) > 0 ? true : false;
 
         if($has && $doesHave !== null && is_callable($doesHave)){
-            call_user_func_array($doesHave, array($row));
+            return call_user_func_array($doesHave, array($row));
         }elseif(!$has && $doesNotHave !== null && is_callable($doesNotHave)){
-            call_user_func_array($doesNotHave, array($row));
+            return call_user_func_array($doesNotHave, array($row));
         }
 
         $this->joins = array();
