@@ -413,7 +413,7 @@ class DBOTable extends DBO{
         $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        return (int)$this->_getOne("select count(*) from $table where " . $where . " limit 1", $vals);
+        return (int)$this->getOne("select count(*) from $table where " . $where . " limit 1", $vals);
     }
 
     /**
