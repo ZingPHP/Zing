@@ -16,6 +16,8 @@ use Modules\Util;
 use Modules\Validate;
 use Modules\Session;
 
+define("__TPL__", $_SERVER["DOCUMENT_ROOT"] . "/Websites/Templates");
+
 /**
  * @property Input $input Functionality for global variables
  * @property Http $http Functionality to Http
