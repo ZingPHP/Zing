@@ -46,4 +46,17 @@ class ZingTemplateLoader implements ZingTemplate{
         }
     }
 
+    public function parseTpl($tpl, $key, $data = ""){
+        $smarty = new Smarty();
+        if(is_array($key)){
+            foreach($key as $k => $v){
+                $smarty->assign($k, $v);
+            }
+        }else{
+            $smarty->assign($key, $data);
+        }
+        $cache_id = md5($_SERVER['REQUEST_URI']);
+        return $smarty->fetch("string:$tpl", $cache_id);
+    }
+
 }

@@ -58,6 +58,15 @@ class Tpl extends Module{
         $this->tplEngine->append($key, $value);
     }
 
+    public function parseTpl($tpl, $data){
+        if($this->tplEngine == null){
+            if(!$this->setDefaultEngine()){
+                throw new Exception("Template Engine Not Set");
+            }
+        }
+        return $this->tplEngine->parseTpl($tpl, $data);
+    }
+
     public function display($filename){
         if($this->tplEngine == null){
             if(!$this->setDefaultEngine()){

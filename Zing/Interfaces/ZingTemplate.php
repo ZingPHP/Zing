@@ -11,4 +11,6 @@ interface ZingTemplate{
     public function assign($key, $value = "");
 
     public function append($key, $value = "");
+
+    public function parseTpl($tpl, $key, $data = "");
 }
