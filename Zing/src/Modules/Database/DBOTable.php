@@ -464,6 +464,7 @@ class DBOTable extends DBO{
      */
     public function getSum($column, array $columns){
         $cols  = array_keys($columns);
+        $this->_testColumns(array($column));
         $this->_testColumns($cols);
         $cols  = $this->_formatColumns($cols);
         $vals  = array_values($columns);
