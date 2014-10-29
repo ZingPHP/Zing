@@ -472,7 +472,7 @@ class DBOTable extends DBO{
         $where = implode(" = ? and ", $cols) . " = ?";
         $where = $this->_buildWhere($where, $vals);
 
-        return $this->getOne("select sum(*) from $table where " . $where . " limit 1", $vals);
+        return $this->getOne("select sum($column) from $table where " . $where . " limit 1", $vals);
     }
 
     /**
