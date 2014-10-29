@@ -19,6 +19,7 @@ class DBOTable extends DBO{
     private $joins              = array();
     private $columns            = array();
     private $orderByCol         = array();
+    private $groupByCol         = array();
     private $internalQuery      = array(
         "select" => "",
         "order"  => "",
@@ -273,6 +274,25 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Group results
+     * @param array $order
+     * @return DBOTable
+     */
+    public function groupBy(array $order){
+        $this->groupByCol = array();
+        foreach($order as $k => $v){
+            if(is_int($k)){
+                $this->_testColumns(array($v));
+                $this->groupByCol[$v] = "asc";
+            }else{
+                $this->_testColumns(array($k));
+                $this->groupByCol[$k] = in_array(strtolower($v), array("asc", "desc")) ? $v : "asc";
+            }
+        }
+        return $this;
+    }
+
+    /**
      * Sets the number of rows to return
      * @param int $limit
      * @return DBOTable
@@ -358,12 +378,16 @@ class DBOTable extends DBO{
         $order   = $this->_buildOrder();
         $order   = !empty($order) ? "order by $order" : "";
 
+        $group = $this->_buildGroup();
+        $group = !empty($group) ? "group by $group" : "";
+
         $limit = (int)$this->limit > 0 ? "limit $this->limit" : "";
 
-        $rows             = $this->_getAll("select $selCols from $table where " . $where . " " . $order . " $limit", $vals);
+        $rows             = $this->_getAll("select $selCols from $table where $where $group $order $limit", $vals);
         $this->columns    = array();
         $this->joins      = array();
         $this->orderByCol = array();
+        $this->groupByCol = array();
         $this->limit      = 0;
         if(count($rows) > 0){
             if(is_callable($foundRows)){
@@ -399,8 +423,10 @@ class DBOTable extends DBO{
         $selCols = $this->_buildColumns();
         $order   = $this->_buildOrder();
         $order   = !empty($order) ? "order by $order" : "";
+        $group   = $this->_buildGroup();
+        $group   = !empty($group) ? "order by $order" : "";
 
-        $row = $this->_getRow("select $selCols from $table where " . $where . " " . $order . " limit 1", $vals);
+        $row = $this->_getRow("select $selCols from $table where $where $group $order limit 1", $vals);
 
         $this->columns    = array();
         $this->joins      = array();
@@ -598,6 +624,22 @@ class DBOTable extends DBO{
             return "";
         }
         foreach($this->orderByCol as $col => $dirc){
+            $c     = $this->_formatColumns(array($col));
+            $dir[] = "$c[0] " . (in_array($dirc, array("asc", "desc")) ? $dirc : "asc");
+        }
+        return implode(", ", $dir);
+    }
+
+    /**
+     * Builds the group clause
+     * @return string
+     */
+    protected function _buildGroup(){
+        $dir = array();
+        if(empty($this->groupByCol)){
+            return "";
+        }
+        foreach($this->groupByCol as $col => $dirc){
             $c     = $this->_formatColumns(array($col));
             $dir[] = "$c[0] " . (in_array($dirc, array("asc", "desc")) ? $dirc : "asc");
         }
