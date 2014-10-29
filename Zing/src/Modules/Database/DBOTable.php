@@ -527,6 +527,18 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Appends a special column such as a sum().
+     * Note: this column isn't validiated.
+     * Use with care.
+     * @param type $columnName
+     * @return \Modules\Database\DBOTable
+     */
+    public function appendSpecialCol($columnName){
+        $this->columns[] = $columnName;
+        return $this;
+    }
+
+    /**
      * Gets Rows based on the array passed in
      * @param array $columns
      * @param bool $uniq
