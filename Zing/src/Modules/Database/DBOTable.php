@@ -458,10 +458,11 @@ class DBOTable extends DBO{
 
     /**
      * Gets the sum of the columns
+     * @param string $column
      * @param array $columns
      * @return type
      */
-    public function getSum(array $columns){
+    public function getSum($column, array $columns){
         $cols  = array_keys($columns);
         $this->_testColumns($cols);
         $cols  = $this->_formatColumns($cols);
