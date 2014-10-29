@@ -457,6 +457,23 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Gets the sum of the columns
+     * @param array $columns
+     * @return type
+     */
+    public function getSum(array $columns){
+        $cols  = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        return $this->getOne("select sum(*) from $table where " . $where . " limit 1", $vals);
+    }
+
+    /**
      * Gets a list of items from a table based on the primary key
      * @param mixed $id
      * @param boolean $uniq
