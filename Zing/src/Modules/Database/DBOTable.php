@@ -358,7 +358,7 @@ class DBOTable extends DBO{
     }
 
     /**
-     * With each item found run a user defined callback
+     * With each item found run a user defined callback on the row
      * @param array $columns
      * @param callable $foundRows
      * @param callable $foundNothing
@@ -389,6 +389,36 @@ class DBOTable extends DBO{
         $this->orderByCol = array();
         $this->groupByCol = array();
         $this->limit      = 0;
+        if(count($rows) > 0){
+            if(is_callable($foundRows)){
+                foreach($rows as $row){
+                    call_user_func_array($foundRows, array($row));
+                }
+            }
+        }else{
+            if(is_callable($foundNothing)){
+                call_user_func_array($foundNothing, array());
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * With each item found in a Stored Routine run a user defined callback on the row
+     * @param string $call Stored routine name
+     * @param array $params Array of routine parameters
+     * @param callable $foundRows Callback to run on the found rows
+     * @param callable $foundNothing Callback to run if no rows were found
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function withCall($call, array $params, callable $foundRows, callable $foundNothing = null){
+        if(!$this->_validName($call)){
+            throw new Exception("Invalid Stored Routine '$call'");
+        }
+
+        $qs   = array_pad(array(), count($params), "?");
+        $rows = $this->_getAll("call $call(" . implode(",", $qs) . ")", $params);
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
@@ -550,7 +580,7 @@ class DBOTable extends DBO{
      * Note: this column isn't validiated.
      * Use with care.
      * @param type $columnName
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
     public function appendSpecialCol($columnName){
         $this->columns[] = $columnName;
