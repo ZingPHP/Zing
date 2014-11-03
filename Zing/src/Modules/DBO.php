@@ -100,6 +100,7 @@ class DBO extends Module{
         }catch(Exception$e){
             throw $e;
         }
+        return $this;
     }
 
     /**
