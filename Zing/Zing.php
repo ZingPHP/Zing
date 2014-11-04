@@ -277,9 +277,13 @@ class Zing{
                         }
                     }
                 }
-                $count   = 0;
-                preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
-                $is_ajax = (bool)$count;
+                if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'){
+                    $is_ajax = true;
+                }else{
+                    $count   = 0;
+                    preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
+                    $is_ajax = (bool)$count;
+                }
                 $this->setIsAjax($is_ajax);
                 return;
             }
@@ -287,10 +291,14 @@ class Zing{
         // No route was found, set default route
         if(empty($params)){
             loadDefault:
-            $count   = 0;
-            preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
-            $is_ajax = (bool)$count;
-            $params  = explode("/", trim($path, "/"));
+            if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'){
+                $is_ajax = true;
+            }else{
+                $count   = 0;
+                preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
+                $is_ajax = (bool)$count;
+            }
+            $params = explode("/", trim($path, "/"));
             $this->setPage(isset($params[0]) ? $params[0] : "Home");
             $this->setAction(isset($params[1]) ? $params[1] : "main");
             $this->setIsAjax($is_ajax);
