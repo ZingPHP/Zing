@@ -61,7 +61,7 @@ class Input extends Module{
         $nargs = func_num_args();
         if(empty($this->inputPost)){
             $post    = file_get_contents('php://input');
-            if(($decoded = json_decode($post)) !== false){
+            if(($decoded = json_decode($post, true)) !== false){
                 $this->inputPost = $decoded;
             }
             $_POST = array_merge($_POST, $this->inputPost);
