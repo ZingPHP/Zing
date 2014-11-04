@@ -143,6 +143,10 @@ class Zing{
         Zing::$isAjax = (bool)$is_ajax;
     }
 
+    final public function noBody($hasBody){
+        Zing::$noBody = (bool)$hasBody;
+    }
+
     /**
      * Initialize the framework and website for usage.
      * @param array $config
