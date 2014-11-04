@@ -51,7 +51,8 @@ class Zing{
             $tplExtention     = "tpl",
             $pageExists       = false,
             $namespace        = "",
-            $pageTitle        = "";
+            $pageTitle        = "",
+            $noBody           = false;
     private
             $headerTpl          = "Global/header",
             $footerTpl          = "Global/footer",
@@ -376,7 +377,7 @@ class Zing{
         if(!empty($this->pageTitle)){
             $this->tpl->assign("PageTitle", $this->pageTitle);
         }
-        if(is_file($header) && is_file($main) && !$shell_loaded){
+        if(is_file($header) && (is_file($main) || $this->noBody) && !$shell_loaded){
             $this->tpl->display($header);
             $loadedTpl = true;
         }
@@ -386,7 +387,7 @@ class Zing{
             $loadedTpl = true;
         }
 
-        if(is_file($footer) && is_file($main) && !$shell_loaded){
+        if(is_file($footer) && (is_file($main) || $this->noBody) && !$shell_loaded){
             $this->tpl->display($footer);
             $loadedTpl = true;
         }
