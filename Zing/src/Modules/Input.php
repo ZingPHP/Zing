@@ -7,6 +7,8 @@ namespace Modules;
 
 class Input extends Module{
 
+    protected $inputPost = array();
+
     /**
      * Get or Set session variables
      * @param string $key    The key to the session variable
@@ -57,6 +59,13 @@ class Input extends Module{
      */
     public function post($key, $value = null){
         $nargs = func_num_args();
+        if(empty($this->inputPost)){
+            $post    = file_get_contents('php://input');
+            if(($decoded = json_decode($post)) !== false){
+                $this->inputPost = $decoded;
+            }
+            $_POST = array_merge($_POST, $this->inputPost);
+        }
         if(!isset($_POST[$key]) && $nargs === 1){
             return ModuleShare::$string;
         }
