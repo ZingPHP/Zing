@@ -143,6 +143,10 @@ class Zing{
         Zing::$isAjax = (bool)$is_ajax;
     }
 
+    /**
+     * Sets wheter or not the page has a body.
+     * @param boolean $hasBody
+     */
     final public function noBody($hasBody){
         Zing::$noBody = (bool)$hasBody;
     }
