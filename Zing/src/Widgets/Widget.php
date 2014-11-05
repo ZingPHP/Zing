@@ -2,7 +2,10 @@
 
 namespace Widgets;
 
-class Widget extends Zing{
+use Interfaces\Widget;
+use Zing;
+
+class Widget extends Zing implements Widget{
 
     protected $html     = "";
     protected $settings = array(
@@ -19,6 +22,18 @@ class Widget extends Zing{
 
     final public function setOptions(array $settings = array()){
         $this->settings = array_merge($this->settings, $settings);
+    }
+
+    public function runWidget(){
+
+    }
+
+    public function setDefaultSettings(){
+
+    }
+
+    public function setSettings(array $settings){
+
     }
 
 }
