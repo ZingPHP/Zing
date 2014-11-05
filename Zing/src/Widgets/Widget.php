@@ -20,7 +20,7 @@ class Widget extends Zing implements IWidget{
         return $this->settings[$key];
     }
 
-    final public function setOptions(array $settings = array()){
+    final public function setSettings(array $settings = array()){
         $this->settings = array_merge($this->settings, $settings);
     }
 
