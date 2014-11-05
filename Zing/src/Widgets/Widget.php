@@ -16,6 +16,16 @@ class Widget extends Zing implements IWidget{
         return $this->html;
     }
 
+    final public function saveSettings(){
+        $class                       = $this->_callingClass();
+        $_SESSION["widgets"][$class] = $this->settings;
+    }
+
+    final public function loadSavedSettings(){
+        $class          = $this->_callingClass();
+        $this->settings = $_SESSION["widgets"][$class];
+    }
+
     final public function getSetting($key){
         return $this->settings[$key];
     }
@@ -30,6 +40,13 @@ class Widget extends Zing implements IWidget{
 
     public function setDefaultSettings(){
 
+    }
+
+    private function _callingClass(){
+        $className = get_called_class();
+        $pos       = strrpos($className, "\\") + 1;
+        $class     = substr($className, $pos);
+        return $class;
     }
 
 }
