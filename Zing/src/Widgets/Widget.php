@@ -32,8 +32,4 @@ class Widget extends Zing implements IWidget{
 
     }
 
-    public function setSettings(array $settings){
-
-    }
-
 }
