@@ -64,7 +64,9 @@ class Input extends Module{
             if(($decoded = json_decode($post, true)) !== false){
                 $this->inputPost = $decoded;
             }
-            $_POST = array_merge($_POST, $this->inputPost);
+            if(!empty($this->inputPost)){
+                $_POST = array_merge($_POST, $this->inputPost);
+            }
         }
         if(!isset($_POST[$key]) && $nargs === 1){
             return ModuleShare::$string;
