@@ -8,7 +8,7 @@ class Mail extends Module{
 
     protected $attachments = array();
     protected $recipients  = array();
-    protected $email, $name;
+    protected $email       = null, $name        = null;
 
     /**
      * Adds files to be sent with the message
@@ -56,10 +56,12 @@ class Mail extends Module{
     public function setSender($email, $name = ""){
         if(filter_var($email, FILTER_VALIDATE_EMAIL)){
             $this->email = $email;
+            $this->name  = $name;
         }else{
+            $this->email = null;
+            $this->name  = null;
             throw new Exception("'$email' is not a valid email address.");
         }
-        $this->name = $name;
         return $this;
     }
 
@@ -72,10 +74,10 @@ class Mail extends Module{
      * @return \Mail
      */
     public function send($subject = "", $message = ""){
-        if(count($this->recipients) == 0){
+        if(count($this->recipients) === 0){
             throw new Exception("No recipents set. Emails must be valid.");
         }
-        if(empty($this->email)){
+        if($this->email === null){
             throw new Exception("No sender set.");
         }
         if(!empty($this->attachments)){
