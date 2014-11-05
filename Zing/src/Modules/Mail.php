@@ -84,6 +84,11 @@ class Mail extends Module{
             $random_hash   = md5(date('r', time()));
             $mime_boundary = "==Multipart_Boundary_x{$random_hash}x";
         }
+
+        if(!empty($this->attachments)){
+            $attachments = $this->attachFiles($mime_boundary);
+        }
+
         foreach($this->recipients as $email => $name){
             $headers = "MIME-Version: 1.0\r\n";
             $headers .= "To: $name <$email>\r\n";
@@ -94,7 +99,7 @@ class Mail extends Module{
                 $msg_final = "--$mime_boundary\r\n" .
                         "Content-Type: text/html; charset=utf-8\r\n" .
                         $message . "\r\n\r\n";
-                $msg_final .= $this->attachFiles($mime_boundary);
+                $msg_final .= $attachments;
             }else{
                 $msg_final = $message;
                 $headers .= "Content-type: text/html; charset=utf-8\r\n";
