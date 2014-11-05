@@ -2,7 +2,7 @@
 
 namespace Interfaces;
 
-interface Widget{
+interface IWidget{
 
     public function setSettings(array $settings);
 

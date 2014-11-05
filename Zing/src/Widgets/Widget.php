@@ -2,10 +2,10 @@
 
 namespace Widgets;
 
-use Interfaces\Widget;
+use Interfaces\IWidget;
 use Zing;
 
-class Widget extends Zing implements Widget{
+class Widget extends Zing implements IWidget{
 
     protected $html     = "";
     protected $settings = array(
