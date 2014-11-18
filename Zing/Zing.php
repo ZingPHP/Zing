@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Tpl;
 use Modules\Cache;
 use Modules\Date;
 use Modules\DBO;
@@ -13,12 +14,17 @@ use Modules\Twitter;
 use Modules\User;
 use Modules\Util;
 use Modules\Validate;
+use Modules\Session;
+
+define("__TPL__", $_SERVER["DOCUMENT_ROOT"] . "/Websites/Templates");
 
 /**
  * @property Input $input Functionality for global variables
  * @property Http $http Functionality to Http
- * @property DBO $dbo Functionality to connect to databases
+ * @property DBO $DBO Functionality to connect to databases
  * @property Smarty $smarty Functionality for smarty templates
+ * @property Twig_Environment $twig Functionality for twig templates
+ * @property Tpl $tpl Template Engine
  * @property Form $form Functionality for forms and form validation
  * @property User $user Functionality to work with users
  * @property Mail $mail Functionality to work with emails
@@ -29,18 +35,21 @@ use Modules\Validate;
  * @property Validate $validate Functionality to access dates
  * @property Cache $cache Functionality to access dates
  * @property Twitter $twitter Twitter Accessability
+ * @property Session $session Session Manager
  */
 class Zing{
 
 // Static properties
     public static $page         = "Home";
     public static $action       = "main";
+    public static $noBody       = false;
     public static $params       = array();
     public static $isAjax       = false;
     protected
             $db               = array(),
             $host             = "",
             $root             = "",
+            $tplExtention     = "tpl",
             $pageExists       = false,
             $namespace        = "",
             $pageTitle        = "";
@@ -52,13 +61,14 @@ class Zing{
             $config             = array(),
             $fullConfig         = array(),
             $modules            = array(
-                "dbo"      => false,
+                "DBO"      => false,
                 "input"    => false,
+                "session"  => false,
                 "http"     => false,
-                "smarty"   => false,
                 "form"     => false,
                 "user"     => false,
                 "mail"     => false,
+                "tpl"      => false,
                 "util"     => false,
                 "file"     => false,
                 "math"     => false,
@@ -78,18 +88,15 @@ class Zing{
      */
     public function __get($name){
         if(array_key_exists($name, $this->modules) && !$this->modules[$name]){
-            $class = ucfirst($name);
-            if($name !== "smarty"){
-                $class = "Modules\\$class";
-            }
+            $class                = ucfirst($name);
+            $class                = "Modules\\$class";
             $this->$name          = new $class($this->config);
             $this->modules[$name] = true;
-            return $this->$name;
         }
+        return $this->$name;
     }
 
     public function __construct(){
-//$this->db   = (object)$this->db;
         $this->root = $_SERVER["DOCUMENT_ROOT"];
         if(isset($_GET["host"])){
             $this->host = preg_replace("/^www(.*?)\./", "", $_GET["host"]);
@@ -116,7 +123,7 @@ class Zing{
             $page = "Home";
         }
         $_GET["page"] = $page;
-        Zing::$page = trim($page, "/");
+        Zing::$page   = trim($page, "/");
     }
 
     /**
@@ -125,7 +132,7 @@ class Zing{
      */
     final public function setAction($action){
         $_GET["action"] = $action;
-        Zing::$action = $action;
+        Zing::$action   = $action;
     }
 
     /**
@@ -134,6 +141,14 @@ class Zing{
      */
     final public function setIsAjax($is_ajax){
         Zing::$isAjax = (bool)$is_ajax;
+    }
+
+    /**
+     * Sets wheter or not the page has a body.
+     * @param boolean $hasBody
+     */
+    final public function noBody($hasBody){
+        Zing::$noBody = (bool)$hasBody;
     }
 
     /**
@@ -167,6 +182,7 @@ class Zing{
                     }
                 }
             }catch(Exception $e){
+                echo $e->getMessage();
                 $this->notFound();
             }
         }
@@ -261,9 +277,13 @@ class Zing{
                         }
                     }
                 }
-                $count   = 0;
-                preg_replace("/^\/ajax\//i", "", $path, -1, $count);
-                $is_ajax = (bool)$count;
+                if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'){
+                    $is_ajax = true;
+                }else{
+                    $count   = 0;
+                    preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
+                    $is_ajax = (bool)$count;
+                }
                 $this->setIsAjax($is_ajax);
                 return;
             }
@@ -271,10 +291,14 @@ class Zing{
         // No route was found, set default route
         if(empty($params)){
             loadDefault:
-            $count   = 0;
-            preg_replace("/^ajax\//i", "", $path, -1, $count);
-            $is_ajax = (bool)$count;
-            $params  = explode("/", trim($path, "/"));
+            if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'){
+                $is_ajax = true;
+            }else{
+                $count   = 0;
+                preg_replace("/^\/?ajax\//i", "", $path, -1, $count);
+                $is_ajax = (bool)$count;
+            }
+            $params = explode("/", trim($path, "/"));
             $this->setPage(isset($params[0]) ? $params[0] : "Home");
             $this->setAction(isset($params[1]) ? $params[1] : "main");
             $this->setIsAjax($is_ajax);
@@ -339,46 +363,48 @@ class Zing{
      * @param class $class
      */
     final protected function loadTemplates(){
+        $templates = $this->root . "/Websites/Templates/";
         if(!isset($this->config["host"])){
             throw new Exception("Host Not Found");
         }
         $templates = $this->root . "/Websites/Templates/";
+        $extention = $this->tpl->getFileExtention();
 
         $shell_loaded = false;
-        $header       = $templates . $this->headerTpl . ".tpl";
+        $header       = $templates . $this->headerTpl . "." . $extention;
         if(!empty($this->mainTpl)){
-            $main = $templates . $this->mainTpl . ".tpl";
+            $main = $templates . $this->mainTpl . "." . $extention;
         }else{
-            $main = $templates . ucfirst(Zing::$page) . "/" . Zing::$action . ".tpl";
+            $main = $templates . ucfirst(Zing::$page) . "/" . Zing::$action . "." . $extention;
         }
         if(!is_file($main) && !$this->pageExists){
             throw new Exception("Template Not Found.");
         }
-        $footer = $templates . $this->footerTpl . ".tpl";
+        $footer = $templates . $this->footerTpl . "." . $extention;
         if($this->tplShell !== null){
-            $shell = $templates . "Shells/" . $this->tplShell . ".tpl";
+            $shell = $templates . "Shells/" . $this->tplShell . "." . $extention;
             if(is_file($shell) && !$shell_loaded){
-                $this->smarty->assign("file", $main);
-                $this->smarty->display($shell);
+                $this->tpl->assign("file", $main);
+                $this->tpl->display($shell);
             }
             $shell_loaded = true;
         }
         $loadedTpl = false;
         if(!empty($this->pageTitle)){
-            $this->smarty->assign("PageTitle", $this->pageTitle);
+            $this->tpl->assign("PageTitle", $this->pageTitle);
         }
-        if(is_file($header) && is_file($main) && !$shell_loaded){
-            $this->smarty->display($header);
+        if(is_file($header) && (is_file($main) || Zing::$noBody) && !$shell_loaded){
+            $this->tpl->display($header);
             $loadedTpl = true;
         }
 
         if(is_file($main) && !$shell_loaded){
-            $this->smarty->display($main);
+            $this->tpl->display($main);
             $loadedTpl = true;
         }
 
-        if(is_file($footer) && is_file($main) && !$shell_loaded){
-            $this->smarty->display($footer);
+        if(is_file($footer) && (is_file($main) || Zing::$noBody) && !$shell_loaded){
+            $this->tpl->display($footer);
             $loadedTpl = true;
         }
         return $loadedTpl;
@@ -427,13 +453,13 @@ class Zing{
             throw new Exception("Host Not Found");
         }
         if(isset($this->config["route"])){
-            Zing::$page = isset($this->config["route"]["page"]) ? $this->config["route"]["page"] : Zing::$page;
+            Zing::$page   = isset($this->config["route"]["page"]) ? $this->config["route"]["page"] : Zing::$page;
             Zing::$action = isset($this->config["route"]["action"]) ? $this->config["route"]["action"] : Zing::$action;
         }
         $page_file = __DIR__ . "/../Websites/Pages/" . ucfirst(Zing::$page) . ".php";
         if(is_file($page_file)){
             require_once $page_file;
-            Zing::$page = ucfirst(Zing::$page);
+            Zing::$page   = ucfirst(Zing::$page);
             Zing::$action = lcfirst(Zing::$action);
             return true;
         }else{
@@ -452,10 +478,10 @@ class Zing{
     final public function getWidget($widgetName, array $settings = array()){
         $widgetName = "\\Widgets\\" . str_replace("/", "\\", $widgetName) . "\\$widgetName";
         $widget     = new $widgetName();
-        $opts       = $widget->setDefaultOptions();
-        $widget->setOptions($opts);
+        $opts       = $widget->setDefaultSettings();
+        $widget->setSettings($opts);
         if(!empty($settings)){
-            $widget->setOptions($settings);
+            $widget->setSettings($settings);
         }
         $widget->runWidget();
         $wInfo       = new ReflectionClass($widget);
@@ -490,12 +516,17 @@ class Zing{
             $this->setAction("catchAll");
         }
         if($reflection->isPublic()){
-            $class  = new Zing::$page();
-            $class->initPage($this->config);
+            $class      = new Zing::$page();
+            $class->initPage($this->config, $this->fullConfig);
             Zing::$page = Zing::$page;
-            $action = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
+            $action     = Zing::$isAjax ? Zing::$action . "Ajax" : Zing::$action;
             $class->runBefore();
-            call_user_func_array(array($class, Zing::$action), array());
+            try{
+                call_user_func_array(array($class, Zing::$action), array());
+            }catch(Exception $e){
+                echo $e->getMessage() . " in <b>" . $e->getFile() . "</b> on line " . $e->getLine();
+                exit;
+            }
             $class->runAfter();
 
             $this->pageExists = true;
@@ -509,8 +540,9 @@ class Zing{
      * Initialize the webpage to be used.
      * @param array $config
      */
-    private function initPage($config){
-        $this->config = $config;
+    private function initPage($config, $fullConfig){
+        $this->config     = $config;
+        $this->fullConfig = $fullConfig;
         $this->setupDatabases();
     }
 
@@ -535,7 +567,7 @@ class Zing{
 // Setup Pirmary global databases
         if(isset($this->fullConfig["databases"]) && is_array($this->fullConfig["databases"])){
             foreach($this->fullConfig["databases"] as $name => $data){
-                $this->db[$name] = $this->dbo->init($this->config);
+                $this->db[$name] = $this->DBO->init($this->config);
                 if(!isset($data["dsn"])){
                     $data["dsn"] = "mysql";
                 }
@@ -545,7 +577,7 @@ class Zing{
 // Setup loacal database (duplicates override global databases)
         if(isset($this->config["databases"]) && is_array($this->config["databases"])){
             foreach($this->config["databases"] as $name => $data){
-                $this->db[$name] = $this->dbo->init($this->config);
+                $this->db[$name] = $this->DBO->init($this->config);
                 if(!isset($data["dsn"])){
                     $data["dsn"] = "mysql";
                 }
@@ -590,11 +622,12 @@ spl_autoload_register(function($class){
         require_once $file;
         return;
     }
-    $file = __DIR__ . "/src/Modules/Smarty/$class.class.php";
+    $file = __DIR__ . "/../Websites/Helpers/$class.php";
     if(is_file($file)){
         require_once $file;
+        return;
     }
-    $file = __DIR__ . "/../Websites/Helpers/$class.php";
+    $file = __DIR__ . "/$class.php";
     if(is_file($file)){
         require_once $file;
         return;

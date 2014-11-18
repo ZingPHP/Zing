@@ -2,12 +2,11 @@
 
 namespace Widgets\Calendar;
 
-use Widgets\IWidget;
 use Widgets\Widget;
 
-class Calendar extends Widget implements IWidget{
+class Calendar extends Widget{
 
-    public function setDefaultOptions(){
+    public function setDefaultSettings(){
         return array(
             "day"      => "short",
             "zerofill" => false,

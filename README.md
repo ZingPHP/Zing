@@ -5,6 +5,16 @@ Lightweight php framework
 
 ##Installation
 
+I would recommend **NOT** cloning the repo because then you will have to copy and paste files, and pulling zing framework updates will be much easier, so do the following:
+
+1. Change directories to your webroot `cd /my/web/root`
+2. Initialize a git repository `git init`
+3. Set your upstream `git remote add zing https://github.com/ZingPHP/Zing.git`
+  * If this is your only git repo for the website you can use `origin` instead of `zing`
+4. Download the repo `git pull zing master`
+
+If you did the above 4 steps, then skip to step 2 in either the Apache or Nginx section
+
 * Apache
   1. Copy the following files/directories into the root of your web directory
     1. Websites/\*
@@ -27,7 +37,8 @@ Next you will need to modify the config file:
 ```php
 $config = array(
     "websites" => array(
-        "host" => "example.com"
+        "host"      => "example.com"
+        "tplEngine" => "Smarty", // Default Template Engine (Remove for no engine): Smarty, Twig or other framework
     ),
     "databases" => array(
         "localhost" => array(// Global databases all sites can use

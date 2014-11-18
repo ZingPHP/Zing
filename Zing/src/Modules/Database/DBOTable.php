@@ -15,16 +15,21 @@ class DBOTable extends DBO{
 
     private $table_primary_keys = array();
     protected $table;
+    private $limit              = 0;
     private $joins              = array();
+    private $columns            = array();
+    private $orderByCol         = array();
+    private $groupByCol         = array();
     private $internalQuery      = array(
         "select" => "",
         "order"  => "",
         "where"  => "",
         "group"  => "",
+        "params" => array()
     );
 
-    public function __construct($table_name, $db, $config){
-        $this->db = $db;
+    public function __construct($table_name, $config){
+        $this->setConnectionParams($config);
         if(!$this->_validName($table_name)){
             throw new Exception("Invalid Table Name '$table_name'.");
         }
@@ -44,14 +49,6 @@ class DBOTable extends DBO{
             $this->_getItemsByColumn($matches[1], $arguments[0], $arguments[1]);
         }
         return $this;
-    }
-
-    /**
-     * Gets a subset view of the current table
-     * @return \Modules\Database\DBOView
-     */
-    public function getView(){
-        return new DBOView($this->table, $this->db, $this->config);
     }
 
     /**
@@ -92,33 +89,95 @@ class DBOTable extends DBO{
         }catch(Exception $e){
             $this->rollBackTransaction();
         }
-    }
-
-    /**
-     * Inserts data into a table using key => value pairs
-     * @param array $data
-     * @return \Modules\Database\DBOTable
-     * @throws Exception
-     */
-    public function insert(array $data){
-        $keys   = array_keys($data);
-        $values = array_values($data);
-        foreach($keys as $key){
-            if(!$this->_validName($key)){
-                throw new Exception("Column '$key' is not a valid name.");
-            }
-        }
-        $q = array_pad(array(), count($data), "?");
-        $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
         return $this;
     }
 
     /**
-     * Gets all rows from a table (Use with care)
-     * @return \Modules\Database\DBOTable
+     * Inserts data into a table using key => value pairs
+     * @param array $data A column => value array to insert
+     * @param callable $onComplete A function to call when the insert finishes. The insert id will be passed as a parameter.
+     * @return DBOTable
+     * @throws Exception
      */
-    public function getAllRows(){
-        $this->internalQuery["select"] = "select * from `$this->table`";
+    public function insert(array $data, callable $onComplete = null){
+        $keys   = array_keys($data);
+        $values = array_values($data);
+        $this->_testColumns($keys);
+
+        $q = array_pad(array(), count($data), "?");
+        $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
+
+        if($onComplete !== null && is_callable($onComplete)){
+            $id = $this->getInsertID();
+            call_user_func_array($onComplete, array($id));
+        }
+        return $this;
+    }
+
+    /**
+     * Deleates data from a table using key => value pairs
+     * @param array $data A column => value array to insert
+     * @param callable $onComplete A function to call when the insert finishes.
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function delete(array $data, callable $onComplete = null){
+        $keys   = array_keys($data);
+        $values = array_values($data);
+        $this->_testColumns($keys);
+        $cols   = $this->_formatColumns($cols);
+
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $values);
+
+        $this->query("delete from `$this->table` where " . $where, $values);
+
+        if($onComplete !== null && is_callable($onComplete)){
+            call_user_func_array($onComplete, array());
+        }
+        return $this;
+    }
+
+    /**
+     * Updates a Table
+     * @param array $setters
+     * @param array $filters
+     */
+    public function update(array $setters, array $filters, callable $onComplete = null){
+        $keys1 = array_keys($setters);
+        $vals1 = array_values($setters);
+        $this->_testColumns($keys1);
+        $keys1 = $this->_formatColumns($keys1);
+
+        $keys2 = array_keys($filters);
+        $vals2 = array_values($filters);
+        $this->_testColumns($keys2);
+        $keys2 = $this->_formatColumns($keys2);
+
+        $table = $this->_buildTableSyntax();
+
+        $set = implode(" = ?, ", $keys1) . " = ?";
+
+        $where = implode(" = ? and ", $keys2) . " = ?";
+        $where = $this->_buildWhere($where, $vals2);
+
+        $this->query("update $table set $set where $where", array_merge($vals1, $vals2));
+        if($onComplete !== null && is_callable($onComplete)){
+            $affected = $this->getAffectedRows();
+            call_user_func_array($onComplete, array($affected));
+        }
+    }
+
+    /**
+     * Gets all rows from a table (Use with care)
+     * @return DBOTable
+     */
+    public function getAllRows(array $params = array()){
+        $table   = $this->_buildTableSyntax();
+        $selCols = $this->_buildColumns();
+
+        $this->internalQuery["select"] = "select $selCols from $table";
+        $this->go($params);
         return $this;
     }
 
@@ -126,7 +185,7 @@ class DBOTable extends DBO{
      * Orders the rows in the simple qurery builder
      * @param type $column
      * @param type $direction
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      * @throws Exception
      */
     public function orderRows($column, $direction = "asc"){
@@ -141,23 +200,42 @@ class DBOTable extends DBO{
     /**
      * Filter the rows in the simple query builder
      * @param type $filter
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
     public function filterRows($filter){
-        $this->internalQuery["where"] = $filter;
+        $this->internalQuery["where"] = "where " . $filter;
+        return $this;
+    }
+
+    /**
+     * Filter the rows using an array in the simple query builder
+     * @param array $columns
+     * @return DBOTable
+     */
+    public function arrayFilterRows(array $columns){
+        $cols = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols = $this->_formatColumns($cols);
+
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $columns);
+
+        $this->internalQuery["where"]  = "where " . $where;
+        $this->internalQuery["params"] = array_values($columns);
         return $this;
     }
 
     /**
      * Executes the simple query builder
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
-    public function go(){
-        $select = $this->internalQuery["select"];
-        $where  = $this->internalQuery["where"];
-        $group  = $this->internalQuery["group"];
-        $order  = $this->internalQuery["order"];
-        $this->getAll("$select $where $group $order");
+    private function go(){
+        $select        = $this->internalQuery["select"];
+        $where         = $this->internalQuery["where"];
+        $group         = $this->internalQuery["group"];
+        $order         = $this->internalQuery["order"];
+        $this->getAll("$select $where $group $order", $this->internalQuery["params"]);
+        $this->columns = array();
         return $this;
     }
 
@@ -177,24 +255,254 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Order results
+     * @param array $order
+     * @return DBOTable
+     */
+    public function orderBy(array $order){
+        $this->orderByCol = array();
+        foreach($order as $k => $v){
+            if(is_int($k)){
+                $this->_testColumns(array($v));
+                $this->orderByCol[$v] = "asc";
+            }else{
+                $this->_testColumns(array($k));
+                $this->orderByCol[$k] = in_array(strtolower($v), array("asc", "desc")) ? $v : "asc";
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Group results
+     * @param array $order
+     * @return DBOTable
+     */
+    public function groupBy(array $order){
+        $this->groupByCol = array();
+        foreach($order as $k => $v){
+            if(is_int($k)){
+                $this->_testColumns(array($v));
+                $this->groupByCol[$v] = "asc";
+            }else{
+                $this->_testColumns(array($k));
+                $this->groupByCol[$k] = in_array(strtolower($v), array("asc", "desc")) ? $v : "asc";
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Sets the number of rows to return
+     * @param int $limit
+     * @return DBOTable
+     */
+    public function setLimit($limit){
+        $this->limit = (int)$limit;
+        return $this;
+    }
+
+    /**
      * Tests a table to see if a row exists using an array.
      * @param array $columns
      * @return boolean
      * @throws Exception
      */
-    public function has(array $columns){
+    public function has(array $columns, callable $doesHave = null, callable $doesNotHave = null){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
-        $where = array();
+        $cols  = $this->_formatColumns($cols);
         $table = $this->_buildTableSyntax();
-        foreach($cols as $col){
-            $where[] = "$col = ?";
+
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        $row = $this->_getRow($q   = "select * from $table where " . $where . " limit 1", $vals);
+        $has = is_array($row) && count($row) > 0 ? true : false;
+
+        if($has && $doesHave !== null && is_callable($doesHave)){
+            return call_user_func_array($doesHave, array($row));
+        }elseif(!$has && $doesNotHave !== null && is_callable($doesNotHave)){
+            return call_user_func_array($doesNotHave, array($row));
         }
-        $has = (bool)$this->getOne("select 1 from $table where " . implode(" and ", $where) . " limit 1", $vals);
 
         $this->joins = array();
         return $has;
+    }
+
+    /**
+     * Executes a user callback if the table contains a match
+     * @param array $columns A column => value array to search for
+     * @param callable $callback A user callback
+     * @return DBOTable
+     */
+    public function ifHas(array $columns, callable $callback){
+        if($this->has($columns)){
+            call_user_func_array($callback, array($columns));
+        }
+        return $this;
+    }
+
+    /**
+     * Executes a user callback if the table does not contain a match
+     * @param array $columns A column => value array to search for
+     * @param callable $callback A user callback
+     * @return DBOTable
+     */
+    public function ifHasNot(array $columns, callable $callback){
+        if(!$this->has($columns)){
+            call_user_func_array($callback, array($columns));
+        }
+        return $this;
+    }
+
+    /**
+     * With each item found run a user defined callback on the row
+     * @param array $columns
+     * @param callable $foundRows
+     * @param callable $foundNothing
+     * @return DBOTable
+     */
+    public function with(array $columns, callable $foundRows, callable $foundNothing = null){
+        $cols  = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        $selCols = $this->_buildColumns();
+        $order   = $this->_buildOrder();
+        $order   = !empty($order) ? "order by $order" : "";
+
+        $group = $this->_buildGroup();
+        $group = !empty($group) ? "group by $group" : "";
+
+        $limit = (int)$this->limit > 0 ? "limit $this->limit" : "";
+
+        $rows             = $this->_getAll("select $selCols from $table where $where $group $order $limit", $vals);
+        $this->columns    = array();
+        $this->joins      = array();
+        $this->orderByCol = array();
+        $this->groupByCol = array();
+        $this->limit      = 0;
+        if(count($rows) > 0){
+            if(is_callable($foundRows)){
+                foreach($rows as $row){
+                    call_user_func_array($foundRows, array($row));
+                }
+            }
+        }else{
+            if(is_callable($foundNothing)){
+                call_user_func_array($foundNothing, array());
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * With each item found in a Stored Routine run a user defined callback on the row
+     * @param string $call Stored routine name
+     * @param array $params Array of routine parameters
+     * @param callable $foundRows Callback to run on the found rows
+     * @param callable $foundNothing Callback to run if no rows were found
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function withCall($call, array $params, callable $foundRows, callable $foundNothing = null){
+        if(!$this->_validName($call)){
+            throw new Exception("Invalid Stored Routine '$call'");
+        }
+
+        $qs   = array_pad(array(), count($params), "?");
+        $rows = $this->_getAll("call $call(" . implode(",", $qs) . ")", $params);
+        if(count($rows) > 0){
+            if(is_callable($foundRows)){
+                foreach($rows as $row){
+                    call_user_func_array($foundRows, array($row));
+                }
+            }
+        }else{
+            if(is_callable($foundNothing)){
+                call_user_func_array($foundNothing, array());
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Get a row from the database and run a callback on it
+     * @param array $columns
+     * @param callable $foundRows
+     * @param callable $foundNothing
+     * @return DBOTable
+     */
+    public function get(array $columns, callable $foundRows, callable $foundNothing = null){
+        $cols  = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        $selCols = $this->_buildColumns();
+        $order   = $this->_buildOrder();
+        $order   = !empty($order) ? "order by $order" : "";
+        $group   = $this->_buildGroup();
+        $group   = !empty($group) ? "order by $order" : "";
+
+        $row = $this->_getRow("select $selCols from $table where $where $group $order limit 1", $vals);
+
+        $this->columns    = array();
+        $this->joins      = array();
+        $this->orderByCol = array();
+        if(count($row) > 0 && is_callable($foundRows)){
+            call_user_func_array($foundRows, array($row));
+        }elseif(is_callable($foundNothing)){
+            call_user_func_array($foundNothing, array());
+        }
+        return $this;
+    }
+
+    /**
+     * Get the total number of columns
+     * @param array $columns
+     * @return int
+     */
+    public function getTotal(array $columns){
+        $cols  = array_keys($columns);
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        return (int)$this->getOne("select count(*) from $table where " . $where . " limit 1", $vals);
+    }
+
+    /**
+     * Gets the sum of the columns
+     * @param string $column
+     * @param array $columns
+     * @return type
+     */
+    public function getSum($column, array $columns){
+        $cols  = array_keys($columns);
+        $this->_testColumns(array($column));
+        $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
+        $vals  = array_values($columns);
+        $table = $this->_buildTableSyntax();
+        $where = implode(" = ? and ", $cols) . " = ?";
+        $where = $this->_buildWhere($where, $vals);
+
+        return $this->getOne("select sum($column) from $table where " . $where . " limit 1", $vals);
     }
 
     /**
@@ -208,14 +516,21 @@ class DBOTable extends DBO{
         $table  = $this->_buildTableSyntax();
         $column = $this->_getPrimary();
         $extra  = $uniq ? "limit 1" : "";
-        $query  = "select * from $table where $column = ? $extra";
+
+        $order = $this->_buildOrder();
+        $order = !empty($order) ? "order by $order" : "";
+
+        $selCols = $this->_buildColumns();
+        $query   = "select $selCols from $table where $column = ? $order $extra";
         if($uniq){
             $array = $this->_getRow($query, array($id));
         }else{
             $array = $this->_getAll($query, array($id));
         }
         $this->setArray($array);
-        $this->joins = array();
+        $this->joins      = array();
+        $this->columns    = array();
+        $this->orderByCol = array();
         return $this;
     }
 
@@ -223,27 +538,52 @@ class DBOTable extends DBO{
      * Adds a table to join on from the initial table or previous join() calls
      * @param string $table
      * @param array $on
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      * @throws Exception
      */
     public function join($table, array $on){
-        $keys  = array_keys($on);
-        $vals  = array_values($on);
-        $joins = array();
-        foreach($keys as $k => $v){
-            if(is_int($k) && $this->_validName($v)){
-                $joins[] = "using({$vals[$k]})";
-            }else{
-                if(!$this->_validName($k)){
-                    throw new Exception("Invalid name '$k'");
-                }
-                if(!$this->_validName($v)){
-                    throw new Exception("Invalid name '$v'");
-                }
-                $joins[] = "$k = {$vals[$k]}";
-            }
-        }
-        $this->joins[$table] = $joins;
+        $joins = $this->_buildJoin($on);
+
+        $this->joins[$table . "|join"] = $joins;
+        return $this;
+    }
+
+    /**
+     * Adds a table to left join on from the initial table or previous join() calls
+     * @param type $table
+     * @param array $on
+     * @return DBOTable
+     */
+    public function leftJoin($table, array $on){
+        $joins = $this->_buildJoin($on);
+
+        $this->joins[$table . "|left join"] = $joins;
+        return $this;
+    }
+
+    /**
+     * Sets the returned Columns
+     * @param array $columns
+     * @return DBOTable
+     */
+    public function setColumns(array $columns){
+        $keys          = array_keys($columns);
+        $cols          = array_values($columns);
+        $this->_testColumns($cols);
+        $cols          = $this->_formatColumns($cols);
+        $this->columns = array_combine($keys, $cols);
+        return $this;
+    }
+
+    /**
+     * Appends a special column such as a sum().
+     * Note: this column isn't validiated.
+     * Use with care.
+     * @param type $columnName
+     * @return DBOTable
+     */
+    public function appendSpecialCol($columnName){
+        $this->columns[] = $columnName;
         return $this;
     }
 
@@ -255,10 +595,11 @@ class DBOTable extends DBO{
      * @return DBOTable
      * @throws Exception
      */
-    public function getItemByColumns(array $columns, $uniq = false, array $orderBy = array()){
+    public function getItemsByColumn(array $columns, $uniq = false, array $orderBy = array()){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
+        $cols  = $this->_formatColumns($cols);
         $where = array();
         foreach($cols as $col){
             $where[] = "$col = ?";
@@ -281,14 +622,16 @@ class DBOTable extends DBO{
         if(count($order) > 0){
             $orderStr = "order by " . implode(",", $order);
         }
-        $table = $this->_buildTableSyntax();
+        $table   = $this->_buildTableSyntax();
+        $selCols = $this->_buildColumns();
         if((bool)$uniq){
-            $array = $this->_getRow("select * from $table where " . implode(" and ", $where) . " $orderStr limit 1", $vals);
+            $array = $this->_getRow("select $selCols from $table where " . implode(" and ", $where) . " $orderStr limit 1", $vals);
         }else{
-            $array = $this->_getAll("select * from $table where " . implode(" and ", $where) . " $orderStr", $vals);
+            $array = $this->_getAll("select $selCols from $table where " . implode(" and ", $where) . " $orderStr", $vals);
         }
         $this->setArray($array);
-        $this->joins = array();
+        $this->joins   = array();
+        $this->columns = array();
         return $this;
     }
 
@@ -296,7 +639,7 @@ class DBOTable extends DBO{
      * Formats a column or an array of database columns using a callback
      * @param string|array $columns
      * @param \Modules\Database\callable $formatter
-     * @return \Modules\Database\DBOTable
+     * @return DBOTable
      */
     public function formatColumn($columns, callable $formatter){
         if(!is_array($columns)){
@@ -321,18 +664,81 @@ class DBOTable extends DBO{
     }
 
     /**
+     * Builds the columns to display
+     * @return string
+     */
+    protected function _buildColumns(){
+        $selCols = implode(",", $this->columns);
+        if(empty($selCols)){
+            $selCols = "*";
+        }
+        return $selCols;
+    }
+
+    /**
+     * Builds the order clause
+     * @return string
+     */
+    protected function _buildOrder(){
+        $dir = array();
+        if(empty($this->orderByCol)){
+            return "";
+        }
+        foreach($this->orderByCol as $col => $dirc){
+            $c     = $this->_formatColumns(array($col));
+            $dir[] = "$c[0] " . (in_array($dirc, array("asc", "desc")) ? $dirc : "asc");
+        }
+        return implode(", ", $dir);
+    }
+
+    /**
+     * Builds the group clause
+     * @return string
+     */
+    protected function _buildGroup(){
+        $dir = array();
+        if(empty($this->groupByCol)){
+            return "";
+        }
+        foreach($this->groupByCol as $col => $dirc){
+            $c     = $this->_formatColumns(array($col));
+            $dir[] = "$c[0] " . (in_array($dirc, array("asc", "desc")) ? $dirc : "asc");
+        }
+        return implode(", ", $dir);
+    }
+
+    /**
      * Creates a database table syntax. Example: tableA on tableB using(columnA)
      * @return type
      */
     protected function _buildTableSyntax(){
         $str = $this->table;
-        foreach($this->joins as $table => $join){
-            $str .= " join $table ";
+        foreach($this->joins as $tblJoin => $join){
+            list($table, $joinType) = explode("|", $tblJoin);
+            $str .= " $joinType $table ";
+            $stritm = array();
+            $i      = false;
             foreach($join as $j){
-                $str .= " $j ";
+                $extra = "";
+                if(strpos($j, "using(") === false && !$i){
+                    $extra = "on";
+                }
+                $i        = true;
+                $stritm[] = " $extra $j ";
             }
+            $str .= implode(" and ", $stritm);
         }
         return $str;
+    }
+
+    protected function _buildWhere($where, $values){
+        $groups = explode("?", $where);
+        foreach($values as $offset => $value){
+            if(is_null($value)){
+                $groups[$offset] = str_replace("=", "is", $groups[$offset]);
+            }
+        }
+        return implode("?", $groups);
     }
 
     /**
@@ -346,12 +752,43 @@ class DBOTable extends DBO{
         if(!$this->_validName($column)){
             throw new Exception("Invalid column format '$column'.");
         }
+        $selCols = $this->_buildColumns();
         if(!(bool)$uniq){
-            $array = $this->_getAll("select * from `$this->table` where `$column` = ?", array($value));
+            $array = $this->_getAll("select $selCols from `$this->table` where `$column` = ?", array($value));
         }else{
-            $array = $this->_getRow("select * from `$this->table` where `$column` = ? limit 1", array($value));
+            $array = $this->_getRow("select $selCols from `$this->table` where `$column` = ? limit 1", array($value));
         }
+        $this->columns = array();
         $this->setArray($array);
+    }
+
+    protected function _buildJoin(array $on){
+        $keys  = array_keys($on);
+        $vals  = array_values($on);
+        $joins = array();
+        foreach($on as $k => $v){
+            if(is_int($k) && $this->_validName($v)){
+                $joins[] = "using({$vals[$k]})";
+            }else{
+                if(!$this->_validName($k)){
+                    throw new Exception("Invalid name '$k'");
+                }
+                if(!$this->_validName($v)){
+                    throw new Exception("Invalid name '$v'");
+                }
+                $joins[] = "$k = {$on[$k]}";
+            }
+        }
+        return $joins;
+    }
+
+    protected function _formatColumns(array $columns){
+        $final = array();
+        foreach($columns as $col){
+            $newCol  = explode(".", $col);
+            $final[] = "`" . implode("`.`", $newCol) . "`";
+        }
+        return $final;
     }
 
     /**

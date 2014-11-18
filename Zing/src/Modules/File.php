@@ -81,6 +81,20 @@ class File extends Module{
     }
 
     /**
+     * Reads the contents of a file if it exists. If it doesn't exist
+     * return an empty string.
+     * @param string $filename
+     * @return string
+     */
+    public function readIfExists($filename = null){
+        $filename = $this->getFile($filename);
+        if(is_file($filename)){
+            return file_get_contents($filename);
+        }
+        return "";
+    }
+
+    /**
      * Appends content to the end of a file.
      * @param string $content
      * @param string $filename
@@ -100,6 +114,62 @@ class File extends Module{
         $filename = $this->getFile($filename);
         $content1 = file_get_contents($filename);
         file_put_contents($filename, $content . $content1);
+    }
+
+    /**
+     * Returns the first found file in a list of files
+     * @param array $files
+     * @return string | boolean
+     */
+    public function getFirst(array $files){
+        foreach($files as $file){
+            if(is_file($file)){
+                return $file;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the newest file from an array of files
+     * @param array $files
+     * @return array
+     */
+    public function getNewest(array $files){
+        $rfile = "";
+        $fage  = PHP_INT_MAX;
+        foreach($files as $file){
+            if(!is_file($file)){
+                continue;
+            }
+            $mod = filemtime($file);
+            if($mod < $fage){
+                $fage  = $mod;
+                $rfile = $file;
+            }
+        }
+        return $rfile;
+    }
+
+    /**
+     * Gets the oldest file from an array of files
+     * @param array $files
+     * @return array
+     */
+    public function getOldest(array $files){
+        $rfile = "";
+        $fage  = 0;
+        foreach($files as $file){
+            if(!is_file($file)){
+                continue;
+            }
+            $mod = filemtime($file);
+            if($mod > $fage){
+                $fage  = $mod;
+                $rfile = $file;
+            }
+        }
+        return $rfile;
     }
 
     /**

@@ -113,7 +113,7 @@ class Cache extends Module{
      * @return mixed
      * @throws Exception
      */
-    public function cache($name, $ttl, $callback){
+    public function save($name, $ttl, $callback){
         $this->_setCacheEngine();
         if(!is_callable($callback)){
             throw new Exception("Paramater 3 must be a callable function.");
@@ -133,7 +133,7 @@ class Cache extends Module{
         if($this->cache !== null){
             return;
         }
-        $this->setCacheEngine();
+        $this->setEngine();
     }
 
 }

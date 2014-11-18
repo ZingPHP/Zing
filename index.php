@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author Ryan Naddy <rnaddy@corp.acesse.com>
+ * @author Ryan Naddy <zing@phpsnips.com>
  */
 $page    = "Home";
 $action  = "main";

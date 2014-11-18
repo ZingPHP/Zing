@@ -2,7 +2,10 @@
 
 namespace Widgets;
 
-class Widget extends Zing{
+use Interfaces\IWidget;
+use Zing;
+
+class Widget extends Zing implements IWidget{
 
     protected $html     = "";
     protected $settings = array(
@@ -13,12 +16,37 @@ class Widget extends Zing{
         return $this->html;
     }
 
+    final public function saveSettings(){
+        $class                       = $this->_callingClass();
+        $_SESSION["widgets"][$class] = $this->settings;
+    }
+
+    final public function loadSavedSettings(){
+        $class          = $this->_callingClass();
+        $this->settings = $_SESSION["widgets"][$class];
+    }
+
     final public function getSetting($key){
         return $this->settings[$key];
     }
 
-    final public function setOptions(array $settings = array()){
+    final public function setSettings(array $settings = array()){
         $this->settings = array_merge($this->settings, $settings);
+    }
+
+    public function runWidget(){
+
+    }
+
+    public function setDefaultSettings(){
+
+    }
+
+    private function _callingClass(){
+        $className = get_called_class();
+        $pos       = strrpos($className, "\\") + 1;
+        $class     = substr($className, $pos);
+        return $class;
     }
 
 }

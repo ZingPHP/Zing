@@ -2,7 +2,9 @@
 
 namespace Modules\Image;
 
-class Layer extends \Modules\Module{
+use Modules\Module;
+
+class Layer extends Module{
 
     protected $name = "";
 
