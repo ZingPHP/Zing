@@ -108,8 +108,9 @@ class DBOTable extends DBO{
         $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
 
         if($onComplete !== null && is_callable($onComplete)){
-            $id = $this->getInsertID();
-            call_user_func_array($onComplete, array($id));
+            $id  = $this->getInsertID();
+            $obj = $onComplete->bindTo($this, $this);
+            call_user_func_array($obj, array($id));
         }
         return $this;
     }
@@ -133,7 +134,8 @@ class DBOTable extends DBO{
         $this->query("delete from `$this->table` where " . $where, $values);
 
         if($onComplete !== null && is_callable($onComplete)){
-            call_user_func_array($onComplete, array());
+            $obj = $onComplete->bindTo($this, $this);
+            call_user_func_array($obj, array());
         }
         return $this;
     }
@@ -164,7 +166,8 @@ class DBOTable extends DBO{
         $this->query("update $table set $set where $where", array_merge($vals1, $vals2));
         if($onComplete !== null && is_callable($onComplete)){
             $affected = $this->getAffectedRows();
-            call_user_func_array($onComplete, array($affected));
+            $obj      = $onComplete->bindTo($this, $this);
+            call_user_func_array($obj, array($affected));
         }
     }
 
@@ -322,9 +325,11 @@ class DBOTable extends DBO{
         $has = is_array($row) && count($row) > 0 ? true : false;
 
         if($has && $doesHave !== null && is_callable($doesHave)){
-            return call_user_func_array($doesHave, array($row));
+            $obj = $doesHave->bindTo($this, $this);
+            return call_user_func_array($obj, array($row));
         }elseif(!$has && $doesNotHave !== null && is_callable($doesNotHave)){
-            return call_user_func_array($doesNotHave, array($row));
+            $obj = $doesNotHave->bindTo($this, $this);
+            return call_user_func_array($obj, array($row));
         }
 
         $this->joins = array();
@@ -339,7 +344,8 @@ class DBOTable extends DBO{
      */
     public function ifHas(array $columns, callable $callback){
         if($this->has($columns)){
-            call_user_func_array($callback, array($columns));
+            $obj = $callback->bindTo($this, $this);
+            call_user_func_array($obj, array($columns));
         }
         return $this;
     }
@@ -352,7 +358,8 @@ class DBOTable extends DBO{
      */
     public function ifHasNot(array $columns, callable $callback){
         if(!$this->has($columns)){
-            call_user_func_array($callback, array($columns));
+            $obj = $callback->bindTo($this, $this);
+            call_user_func_array($obj, array($columns));
         }
         return $this;
     }
@@ -392,12 +399,14 @@ class DBOTable extends DBO{
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
-                    call_user_func_array($foundRows, array($row));
+                    $obj = $foundRows->bindTo($this, $this);
+                    call_user_func_array($obj, array($row));
                 }
             }
         }else{
             if(is_callable($foundNothing)){
-                call_user_func_array($foundNothing, array());
+                $obj = $foundNothing->bindTo($this, $this);
+                call_user_func_array($obj, array());
             }
         }
         return $this;
@@ -422,12 +431,14 @@ class DBOTable extends DBO{
         if(count($rows) > 0){
             if(is_callable($foundRows)){
                 foreach($rows as $row){
-                    call_user_func_array($foundRows, array($row));
+                    $obj = $foundRows->bindTo($this, $this);
+                    call_user_func_array($obj, array($row));
                 }
             }
         }else{
             if(is_callable($foundNothing)){
-                call_user_func_array($foundNothing, array());
+                $obj = $foundNothing->bindTo($this, $this);
+                call_user_func_array($obj, array());
             }
         }
         return $this;
@@ -462,9 +473,11 @@ class DBOTable extends DBO{
         $this->joins      = array();
         $this->orderByCol = array();
         if(count($row) > 0 && is_callable($foundRows)){
-            call_user_func_array($foundRows, array($row));
+            $obj = $foundRows->bindTo($this, $this);
+            call_user_func_array($obj, array($row));
         }elseif(is_callable($foundNothing)){
-            call_user_func_array($foundNothing, array());
+            $obj = $foundNothing->bindTo($this, $this);
+            call_user_func_array($obj, array());
         }
         return $this;
     }
