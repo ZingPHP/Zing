@@ -107,8 +107,8 @@ class DBOTable extends DBO{
         $q = array_pad(array(), count($data), "?");
         $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
 
+        $id = $this->getInsertID();
         if($onComplete !== null && is_callable($onComplete)){
-            $id  = $this->getInsertID();
             $obj = $onComplete->bindTo($this, $this);
             call_user_func_array($obj, array($id));
         }
