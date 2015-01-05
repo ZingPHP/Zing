@@ -12,10 +12,22 @@ class Module implements Iterator{
         $this->config = $config;
     }
 
+    /**
+     * Creates an instance of the current object
+     * @return mixed
+     */
+    public function getInstance(){
+        return new $this();
+    }
+
     public function __toString(){
         return ModuleShare::$string;
     }
 
+    /**
+     * Gets the current local string
+     * @return string
+     */
     final public function getString(){
         return ModuleShare::$string;
     }
@@ -63,6 +75,11 @@ class Module implements Iterator{
         return array($value);
     }
 
+    /**
+     * Loops through the local array
+     * @param function $callback
+     * @return \Modules\Module
+     */
     final public function each($callback){
         foreach(ModuleShare::$array as $key => $value){
             call_user_func_array($callback, array($value, $key));
@@ -71,7 +88,7 @@ class Module implements Iterator{
     }
 
     /**
-     * Sets the shared array
+     * Sets the local array
      * @param mixed $array
      */
     final public function setArray($array){
