@@ -3,8 +3,9 @@
 namespace Modules;
 
 use Iterator;
+use Zing;
 
-class Module implements Iterator{
+class Module extends Zing implements Iterator{
 
     public $config = array();
 
@@ -78,7 +79,7 @@ class Module implements Iterator{
     /**
      * Loops through the local array
      * @param function $callback
-     * @return \Modules\Module
+     * @return Module
      */
     final public function each($callback){
         foreach(ModuleShare::$array as $key => $value){
@@ -143,7 +144,7 @@ class Module implements Iterator{
      * Sorts a multidimetional array by column
      * @param string $column    The column to use for sorting
      * @param string $direction The direction to sort (asc|desc)
-     * @return \Modules\Module
+     * @return Module
      */
     final public function sort($column, $direction = "asc"){
         $array = ModuleShare::$array;
