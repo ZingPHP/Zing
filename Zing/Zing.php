@@ -570,7 +570,7 @@ class Zing{
 // Setup Pirmary global databases
         if(isset($this->fullConfig["databases"]) && is_array($this->fullConfig["databases"])){
             foreach($this->fullConfig["databases"] as $name => $data){
-                $this->db[$name] = $this->DBO->init($this->config);
+                $this->db[$name] = $this->DBO->dbInit($this->config);
                 if(!isset($data["dsn"])){
                     $data["dsn"] = "mysql";
                 }
@@ -580,7 +580,7 @@ class Zing{
 // Setup loacal database (duplicates override global databases)
         if(isset($this->config["databases"]) && is_array($this->config["databases"])){
             foreach($this->config["databases"] as $name => $data){
-                $this->db[$name] = $this->DBO->init($this->config);
+                $this->db[$name] = $this->DBO->dbInit($this->config);
                 if(!isset($data["dsn"])){
                     $data["dsn"] = "mysql";
                 }
