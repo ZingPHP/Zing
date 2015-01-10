@@ -141,6 +141,25 @@ class Module extends Zing implements Iterator{
     }
 
     /**
+     * Select one item for the key and one item for the value from a multidimensional array
+     * @param mixed $key
+     * @param mixed $value
+     * @return type
+     */
+    final public function keyVal($key, $value){
+        if(!isset(ModuleShare::$array[0]) || !is_array(ModuleShare::$array[0])){
+            return;
+        }
+        $array = array();
+        foreach(ModuleShare::$array as $arr){
+            if(isset($arr[$key]) && isset($arr[$value])){
+                $array[$arr[$key]] = $arr[$value];
+            }
+        }
+        return $array;
+    }
+
+    /**
      * Sorts a multidimetional array by column
      * @param string $column    The column to use for sorting
      * @param string $direction The direction to sort (asc|desc)
