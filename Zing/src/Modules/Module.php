@@ -193,7 +193,7 @@ class Module extends Zing implements Iterator{
     }
 
     final public function key(){
-        return ModuleShare::position;
+        return ModuleShare::$position;
     }
 
     final public function next(){
