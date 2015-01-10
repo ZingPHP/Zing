@@ -43,7 +43,7 @@ class DBO extends Module{
      * @param array $config
      * @return DBO
      */
-    public function init($config){
+    public function dbInit($config){
         return new DBO($config);
     }
 
