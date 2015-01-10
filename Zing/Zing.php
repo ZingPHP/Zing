@@ -15,6 +15,7 @@ use Modules\User;
 use Modules\Util;
 use Modules\Validate;
 use Modules\Session;
+use Modules\Object;
 
 define("__TPL__", $_SERVER["DOCUMENT_ROOT"] . "/Websites/Templates");
 
@@ -36,6 +37,7 @@ define("__TPL__", $_SERVER["DOCUMENT_ROOT"] . "/Websites/Templates");
  * @property Cache $cache Functionality to access dates
  * @property Twitter $twitter Twitter Accessability
  * @property Session $session Session Manager
+ * @property Object $object An empty Object
  */
 class Zing{
 
@@ -76,6 +78,7 @@ class Zing{
                 "validate" => false,
                 "cache"    => false,
                 "twitter"  => false,
+                "object"   => false,
     );
     public static
             $widgets      = array(),

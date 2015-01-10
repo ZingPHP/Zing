@@ -12,10 +12,22 @@ class Module implements Iterator{
         $this->config = $config;
     }
 
+    /**
+     * Creates an instance of the current object
+     * @return mixed
+     */
+    public function getInstance(){
+        return new $this();
+    }
+
     public function __toString(){
         return ModuleShare::$string;
     }
 
+    /**
+     * Gets the current local string
+     * @return string
+     */
     final public function getString(){
         return ModuleShare::$string;
     }
@@ -63,6 +75,11 @@ class Module implements Iterator{
         return array($value);
     }
 
+    /**
+     * Loops through the local array
+     * @param function $callback
+     * @return \Modules\Module
+     */
     final public function each($callback){
         foreach(ModuleShare::$array as $key => $value){
             call_user_func_array($callback, array($value, $key));
@@ -71,17 +88,82 @@ class Module implements Iterator{
     }
 
     /**
-     * Sets the shared array
+     * Sets the local array
      * @param mixed $array
      */
     final public function setArray($array){
-        $array = $this->toArray($array);
+        $array              = $this->toArray($array);
         ModuleShare::$array = $array;
     }
 
-    //
-    // Begin Iterator methods
-    //
+    /**
+     * Interchanges each row and the corresponding column.
+     * @param bool $apply
+     * @return array
+     */
+    final public function transpose(){
+        $array = ModuleShare::$array;
+        if(!isset($array[0]) || !is_array($array[0])){
+            return;
+        }
+        $newArray = array();
+        foreach($array as $arr){
+            foreach($arr as $key => $val){
+                if(!array_key_exists($key, $newArray)){
+                    $newArray[$key] = array();
+                }
+                $newArray[$key][] = $val;
+            }
+        }
+        $this->setArray($newArray);
+        return $this;
+    }
+
+    /**
+     * Picks values from a particular key
+     * @param string $column
+     * @return array
+     */
+    final public function pick($column){
+        if(!isset(ModuleShare::$array[0]) || !is_array(ModuleShare::$array[0])){
+            return;
+        }
+        $array = array();
+        foreach(ModuleShare::$array as $arr){
+            foreach($arr as $key => $val){
+                if($key === $column){
+                    $array[] = $val;
+                }
+            }
+        }
+        return $array;
+    }
+
+    /**
+     * Sorts a multidimetional array by column
+     * @param string $column    The column to use for sorting
+     * @param string $direction The direction to sort (asc|desc)
+     * @return \Modules\Module
+     */
+    final public function sort($column, $direction = "asc"){
+        $array = ModuleShare::$array;
+        if(!isset($array[0]) || !is_array($array[0])){
+            return;
+        }
+        uasort($array, function($a, $b) use ($column, $direction){
+            if($direction == "asc" || !in_array($direction, array("asc", "desc"))){
+                return strnatcmp($a[$column], $b[$column]);
+            }else{
+                return strnatcmp($b[$column], $a[$column]);
+            }
+        });
+        $this->setArray($array);
+        return $this;
+    }
+
+//
+// Begin Iterator methods
+//
     final public function rewind(){
         ModuleShare::$position = 0;
     }
