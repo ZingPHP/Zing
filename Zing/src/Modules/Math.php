@@ -72,15 +72,16 @@ class Math extends Module{
     /**
      * Converts Bytes into textual size (GB, MB, KB)
      * @param int $bites
+     * @param int $decimalPlaces
      * @return string
      */
-    public function toSize($bites){
+    public function toSize($bites, $decimalPlaces = 2){
         if($bites >= 1073741824){
-            $fileSize = round($bites / 1024 / 1024 / 1024, 1) . 'GB';
+            $fileSize = round($bites / 1024 / 1024 / 1024, $decimalPlaces) . 'GB';
         }elseif($bites >= 1048576){
-            $fileSize = round($bites / 1024 / 1024, 1) . 'MB';
+            $fileSize = round($bites / 1024 / 1024, $decimalPlaces) . 'MB';
         }elseif($bites >= 1024){
-            $fileSize = round($bites / 1024, 1) . 'KB';
+            $fileSize = round($bites / 1024, $decimalPlaces) . 'KB';
         }else{
             $fileSize = $bites . ' bytes';
         }
