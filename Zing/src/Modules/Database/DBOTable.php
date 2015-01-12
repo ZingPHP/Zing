@@ -658,7 +658,7 @@ class DBOTable extends DBO{
         if(!is_array($columns)){
             $columns = array($columns);
         }
-        foreach($this as $key => $val){
+        foreach(ModuleShare::$array as $key => $val){
             if(is_array($val)){
                 foreach($val as $k => $v){
                     if(in_array($k, $columns)){
@@ -666,7 +666,9 @@ class DBOTable extends DBO{
                     }
                 }
             }else{
-                ModuleShare::$array[$key] = $formatter($val);
+                if(in_array($key, $columns)){
+                    ModuleShare::$array[$key] = $formatter($val);
+                }
             }
         }
         return $this;
