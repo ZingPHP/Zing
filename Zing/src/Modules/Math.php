@@ -70,6 +70,24 @@ class Math extends Module{
     }
 
     /**
+     * Converts Bytes into textual size (GB, MB, KB)
+     * @param int $bites
+     * @return string
+     */
+    public function toSize($bites){
+        if($bites >= 1073741824){
+            $fileSize = round($bites / 1024 / 1024 / 1024, 1) . 'GB';
+        }elseif($bites >= 1048576){
+            $fileSize = round($bites / 1024 / 1024, 1) . 'MB';
+        }elseif($bites >= 1024){
+            $fileSize = round($bites / 1024, 1) . 'KB';
+        }else{
+            $fileSize = $bites . ' bytes';
+        }
+        return $fileSize;
+    }
+
+    /**
      *
      * @param float $lat1  Latitude of point A
      * @param float $long1 Longitude of point A
