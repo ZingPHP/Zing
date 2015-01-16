@@ -451,7 +451,7 @@ class DBOTable extends DBO{
      * @param callable $foundNothing
      * @return DBOTable
      */
-    public function get(array $columns, callable $foundRows, callable $foundNothing = null){
+    public function get(array $columns, callable $foundRows = null, callable $foundNothing = null){
         $cols  = array_keys($columns);
         $this->_testColumns($cols);
         $cols  = $this->_formatColumns($cols);
@@ -468,6 +468,7 @@ class DBOTable extends DBO{
         $group   = !empty($group) ? "order by $order" : "";
 
         $row = $this->_getRow("select $selCols from $table where $where $group $order limit 1", $vals);
+        $this->setArray($row);
 
         $this->columns    = array();
         $this->joins      = array();
