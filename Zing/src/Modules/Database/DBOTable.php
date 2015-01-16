@@ -112,7 +112,7 @@ class DBOTable extends DBO{
             $obj = $onComplete->bindTo($this, $this);
             call_user_func_array($obj, array($id));
         }
-        return $this;
+        return $id;
     }
 
     /**
