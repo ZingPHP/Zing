@@ -609,7 +609,7 @@ class DBOTable extends DBO{
      * @return DBOTable
      * @throws Exception
      */
-    public function getItemsByColumn(array $columns, $uniq = false, array $orderBy = array()){
+    public function getItemsByColumn(array $columns, $uniq = false){
         $cols  = array_keys($columns);
         $vals  = array_values($columns);
         $this->_testColumns($cols);
@@ -619,23 +619,11 @@ class DBOTable extends DBO{
             $where[] = "$col = ?";
         }
 
-        $order = array();
-        foreach($orderBy as $key => $value){
-            if(is_int($key)){
-                $key   = $value;
-                $value = "asc";
-            }
-            if(!$this->_validName($key)){
-                throw new Exception("Invalid Column Name '$key'");
-            }
-            $value   = !in_array($value, array("asc", "desc")) ? "asc" : $value;
-            $order[] = "$key $value";
+        $orderStr = $this->_buildOrder();
+        if(!empty($orderStr)){
+            $orderStr = "order by $orderStr";
         }
 
-        $orderStr = "";
-        if(count($order) > 0){
-            $orderStr = "order by " . implode(",", $order);
-        }
         $table   = $this->_buildTableSyntax();
         $selCols = $this->_buildColumns();
         if((bool)$uniq){
@@ -644,8 +632,9 @@ class DBOTable extends DBO{
             $array = $this->_getAll("select $selCols from $table where " . implode(" and ", $where) . " $orderStr", $vals);
         }
         $this->setArray($array);
-        $this->joins   = array();
-        $this->columns = array();
+        $this->joins      = array();
+        $this->columns    = array();
+        $this->orderByCol = array();
         return $this;
     }
 
