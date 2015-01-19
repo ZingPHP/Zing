@@ -106,11 +106,11 @@ class DBOTable extends DBO{
      */
     public function insert(array $data, array $raw_data = array(), callable $onComplete = null){
         $this->_insert($data, $raw_data, false);
+        $id = $this->getInsertID();
         if($onComplete !== null && is_callable($onComplete)){
-            $id = $this->getInsertID();
             call_user_func_array($onComplete, array($id));
         }
-        return $this;
+        return $id;
     }
 
     /**
@@ -128,11 +128,11 @@ class DBOTable extends DBO{
     public function insertIgnore(array $data, array $raw_data = array(), callable $onComplete = null){
         $this->_insert($data, $raw_data, true);
 
+        $id = $this->getInsertID();
         if($onComplete !== null && is_callable($onComplete)){
-            $id = $this->getInsertID();
             call_user_func_array($onComplete, array($id));
         }
-        return $this;
+        return $id;
     }
 
     /**
@@ -151,11 +151,11 @@ class DBOTable extends DBO{
     public function insertDuplicateKey(array $data, array $duplicateKey, array $raw_data = array(), callable $onComplete = null){
         $this->_insert($data, $raw_data, false, $duplicateKey);
 
+        $id = $this->getInsertID();
         if($onComplete !== null && is_callable($onComplete)){
-            $id = $this->getInsertID();
             call_user_func_array($onComplete, array($id));
         }
-        return $this;
+        return $id;
     }
 
     /**
