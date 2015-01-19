@@ -10,8 +10,7 @@ class User extends Module{
      * @return string
      */
     public function createPassword($password){
-        $salt = hash("sha256", time() . uniqid() . rand(1, 1000));
-        return crypt($password, $salt);
+        return password_hash($password, PASSWORD_DEFAULT);
     }
 
     /**
@@ -21,10 +20,7 @@ class User extends Module{
      * @return boolean
      */
     public function verifyPassword($password, $salt){
-        if(crypt($password, $salt) == $salt){
-            return true;
-        }
-        return false;
+        return password_verify($password, $salt);
     }
 
     /**
