@@ -94,25 +94,68 @@ class DBOTable extends DBO{
 
     /**
      * Inserts data into a table using key => value pairs
-     * @param array $data A column => value array to insert
-     * @param callable $onComplete A function to call when the insert finishes. The insert id will be passed as a parameter.
+     * @param array $data               A column => value array to insert
+     * @param array $raw_data           Raw data to process.
+     *                                  Formats:
+     *                                      "<column>" => array("value" => "some_value", "functions" => "<func_name>")
+     *                                      "<column>" => array("value" => "some_value", "functions" => array("<func_name>", "<func_name>"))
+     * @param callable $onComplete      A function to call when the insert finishes.
+     *                                  The insert id will be passed as a parameter.
      * @return DBOTable
      * @throws Exception
      */
-    public function insert(array $data, callable $onComplete = null){
-        $keys   = array_keys($data);
-        $values = array_values($data);
-        $this->_testColumns($keys);
-
-        $q = array_pad(array(), count($data), "?");
-        $this->query("insert into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ")", $values);
-
-        $id = $this->getInsertID();
+    public function insert(array $data, array $raw_data = array(), callable $onComplete = null){
+        $this->_insert($data, $raw_data, false);
         if($onComplete !== null && is_callable($onComplete)){
-            $obj = $onComplete->bindTo($this, $this);
-            call_user_func_array($obj, array($id));
+            $id = $this->getInsertID();
+            call_user_func_array($onComplete, array($id));
         }
-        return $id;
+        return $this;
+    }
+
+    /**
+     * Inserts data into a table using key => value pairs
+     * @param array $data               A column => value array to insert
+     * @param array $raw_data           Raw data to process.
+     *                                  Formats:
+     *                                      "<column>" => array("value" => "some_value", "functions" => "<func_name>")
+     *                                      "<column>" => array("value" => "some_value", "functions" => array("<func_name>", "<func_name>"))
+     * @param callable $onComplete      A function to call when the insert finishes.
+     *                                  The insert id will be passed as a parameter.
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function insertIgnore(array $data, array $raw_data = array(), callable $onComplete = null){
+        $this->_insert($data, $raw_data, true);
+
+        if($onComplete !== null && is_callable($onComplete)){
+            $id = $this->getInsertID();
+            call_user_func_array($onComplete, array($id));
+        }
+        return $this;
+    }
+
+    /**
+     * Insert ignores data into a table using key => value pairs
+     * @param array $data               A column => value array to insert
+     * @param array $duplicateKey       An array of keys or key values to do an update with
+     * @param array $raw_data           Raw data to process.
+     *                                  Formats:
+     *                                      "<column>" => array("value" => "some_value", "functions" => "<func_name>")
+     *                                      "<column>" => array("value" => "some_value", "functions" => array("<func_name>", "<func_name>"))
+     * @param callable $onComplete      A function to call when the insert finishes.
+     *                                  The insert id will be passed as a parameter.
+     * @return DBOTable
+     * @throws Exception
+     */
+    public function insertDuplicateKey(array $data, array $duplicateKey, array $raw_data = array(), callable $onComplete = null){
+        $this->_insert($data, $raw_data, false, $duplicateKey);
+
+        if($onComplete !== null && is_callable($onComplete)){
+            $id = $this->getInsertID();
+            call_user_func_array($onComplete, array($id));
+        }
+        return $this;
     }
 
     /**
@@ -666,6 +709,65 @@ class DBOTable extends DBO{
 
     public function count(){
         return count($this->toArray());
+    }
+
+    /**
+     * Builds and executes an insert
+     * @param array $data       The data to be processed
+     * @param array $raw_data   The raw data to processed such as functions
+     * @param bool $ignore      Whether or not to run the insert as an ignore
+     * @param array $columns    The on duplicate key columns to process
+     */
+    private function _insert(array $data, array $raw_data, $ignore, array $columns = array()){
+        $dkeys   = array_keys($data);
+        $rkeys   = array_keys($raw_data);
+        $values  = array_values($data);
+        $rvalues = array_values($raw_data);
+
+        $dups = array();
+        $keys = array_merge($dkeys, $rkeys);
+
+        $this->_testColumns($keys);
+
+        $q = array_pad(array(), count($data), "?");
+
+        // Process Raw Data
+        if(count($rvalues) > 0){
+            foreach($rvalues as $item){
+                if(isset($item["value"])){
+                    $values[] = $item["value"];
+                    if(isset($item["functions"]) && is_array($item["functions"])){
+                        $q[] = implode("(", $item["functions"]) . "(?" . str_repeat(")", count($item["functions"]));
+                    }else if(isset($item["functions"]) && is_string($item["functions"])){
+                        $q[] = $item["functions"] . "(?)";
+                    }
+                }elseif(!isset($item["value"]) && isset($item["functions"])){
+                    if(isset($item["functions"]) && is_array($item["functions"])){
+                        $q[] = implode("(", $item["functions"]) . "(" . str_repeat(")", count($item["functions"]));
+                    }else if(isset($item["functions"]) && is_string($item["functions"])){
+                        $q[] = $item["functions"] . "()";
+                    }
+                }
+            }
+        }
+
+        $ignoreStr = (bool)$ignore ? "ignore" : "";
+        $dupKeyStr = "";
+        if(count($columns) > 0){
+            $dupKeyStr = " on duplicate key update ";
+            foreach($columns as $key => $val){
+                if(is_int($key)){
+                    $this->_testColumns(array($val));
+                    $dups[] = "$val = values($val)";
+                }else{
+                    $this->_testColumns(array($key));
+                    $dups[]   = "$key = ?";
+                    $values[] = $val;
+                }
+            }
+            $dupKeyStr .= implode(",", $dups);
+        }
+        $this->query("insert $ignoreStr into `$this->table` (`" . implode("`,`", $keys) . "`) values (" . implode(",", $q) . ") $dupKeyStr", $values);
     }
 
     /**
