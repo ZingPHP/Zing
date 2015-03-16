@@ -30,7 +30,7 @@ class DBO extends Module{
         $this->hostname = isset($config["hostname"]) ? $config["hostname"] : "";
         $this->username = isset($config["username"]) ? $config["username"] : "";
         $this->password = isset($config["password"]) ? $config["password"] : "";
-        $this->database = isset($config["username"]) ? $config["database"] : "";
+        $this->database = isset($config["database"]) ? $config["database"] : "";
         $this->port     = isset($config["port"]) ? $config["port"] : 3306;
     }
 
