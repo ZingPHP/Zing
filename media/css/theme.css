@@ -1,3 +1,9 @@
+.navbar-default{
+    background-color: #282828;
+    border: 0;
+    border-radius: 0;
+}
+
 header{
     background-color: #101010;
     height: 200px;
