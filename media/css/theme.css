@@ -13,18 +13,13 @@
     background-color: #ff591b;
 }
 
-
-.navbar .nav,
-.navbar .nav > li {
-    float:none;
-    display:inline-block;
-    display:inline; /* ie7 fix */
-    zoom:1; /* hasLayout ie7 trigger */
-    vertical-align: top;
-}
-
-.navbar-inner {
-    text-align:center;
+@media (min-width: 768px){
+    .navbar-nav{
+        float:none;
+        margin: 0 auto;
+        display: table;
+        table-layout: fixed;
+    }
 }
 
 
