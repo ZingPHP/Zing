@@ -4,21 +4,19 @@ $config = array(
     "websites" => array(
         array(
             "name"      => "ZingPHP",
-            "host"      => "zingphp.org",
-            "tplEngine" => "Twig",
+            "host"      => "murware.com",
+            "tplEngine" => "Smarty",
             "alias"     => array(
-                "zing.com",
-                "monkey.com",
-                "172.21.20.75"
+                "beta.murware.com"
             ),
-            "databases" => array(
-                "localhost" => array(
-                    "hostname" => "localhost",
-                    "username" => "zingphp",
-                    "password" => "abc123",
-                    "database" => "test"
-                )
-            )
+//            "databases" => array(
+//                "localhost" => array(
+//                    "hostname" => "localhost",
+//                    "username" => "zingphp",
+//                    "password" => "abc123",
+//                    "database" => "test"
+//                )
+//            )
         ),
     )
 );
