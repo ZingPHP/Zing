@@ -5,7 +5,7 @@
     margin-bottom: 0;
 }
 
-.navbar-default a{
+.navbar-nav > li > a{
     padding: 30px;
 }
 
