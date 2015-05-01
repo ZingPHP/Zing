@@ -28,7 +28,10 @@
 
 header{
     background-color: #101010;
-    height: 200px;
+}
+
+header div.container{
+    padding: 50px 10px;
 }
 
 section.home{
