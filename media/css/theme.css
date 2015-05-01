@@ -1,8 +1,11 @@
 section.home{
     height: 300px;
+    background-position: center center;
+    background-size: 100% auto;
 }
 section.scr{
     background-image: url(http://murware.com/media/images/gameheaders/superChainReaction.png);
-    background-position: center center;
-    background-size: 100% auto;
+}
+section.oley{
+    background-image: url(http://murware.com/media/images/gameheaders/oleyPolie.png);
 }
