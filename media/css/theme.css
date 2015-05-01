@@ -8,7 +8,7 @@
 .navbar-nav > li > a{
     padding: 30px;
 }
-.nav > li > a:hover{
+.navbar-default .navbar-nav>.active>a:hover{
     color: #ffffff;
     background-color: #ff591b;
 }
