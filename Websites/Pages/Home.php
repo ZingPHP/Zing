@@ -8,10 +8,6 @@
 
 class Home extends Zing{
 
-    public function runBefore(){
-
-    }
-
     public function main(){
         echo "Hello";
     }
