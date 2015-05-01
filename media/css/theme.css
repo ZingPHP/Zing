@@ -8,6 +8,10 @@
 .navbar-nav > li > a{
     padding: 30px;
 }
+.navbar-nav > li > a:hover{
+    color: #ffffff;
+    background-color: #ff591b;
+}
 
 header{
     background-color: #101010;
