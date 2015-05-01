@@ -2,7 +2,7 @@
     <section class="home scr">
 
     </section>
-    <section class="home olie">
+    <section class="home oley">
 
     </section>
 </div>
