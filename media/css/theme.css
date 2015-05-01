@@ -3,4 +3,6 @@ section.home{
 }
 section.scr{
     background-image: url(http://murware.com/media/images/gameheaders/superChainReaction.png);
+    background-position: center center;
+    background-size: 100% auto;
 }
