@@ -47,6 +47,7 @@ class Zing{
     public static $noBody       = false;
     public static $params       = array();
     public static $isAjax       = false;
+    public static $debug        = false;
     protected
             $db               = array(),
             $host             = "",
@@ -170,10 +171,16 @@ class Zing{
             }
         }catch(Exception $e){
             try{
-                $loaded = (bool)$this->loadTemplates();
-                if($loaded){
-                    //echo "Loaded";
-                }else{
+                try{
+                    $class  = new Zing::$page();
+                    $class->initPage($this->config, $this->fullConfig);
+                    $class->runBefore();
+                    $loaded = (bool)$class->loadTemplates();
+                    $class->runAfter();
+                }catch(Exception $e){
+                    $loaded = (bool)$this->loadTemplates();
+                }
+                if(!$loaded){
                     foreach(Zing::$widgets as $widget){
                         $w      = $widget["instance"];
                         $getCss = (bool)$w->getSetting("loadCSS");
@@ -185,7 +192,9 @@ class Zing{
                     }
                 }
             }catch(Exception $e){
-                echo $e->getMessage();
+                if(Zing::$debug){
+                    echo $e->getMessage();
+                }
                 $this->notFound();
             }
         }
