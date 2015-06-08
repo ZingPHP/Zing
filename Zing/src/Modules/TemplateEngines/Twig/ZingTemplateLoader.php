@@ -6,6 +6,7 @@ use Interfaces\ZingTemplate;
 use Twig_Autoloader;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
+use Twig_Loader_String;
 
 /**
  * @property Twig_Environment $twig Twig Template Engine
@@ -47,6 +48,11 @@ class ZingTemplateLoader implements ZingTemplate{
         }else{
             $this->vars[$key] .= $value;
         }
+    }
+
+    public function parseTpl($tpl, $data, $unUsed = ""){
+        $twig = new Twig_Environment(new Twig_Loader_String());
+        return $twig->render($tpl, $data);
     }
 
 }
