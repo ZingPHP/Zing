@@ -16,6 +16,10 @@ class ZingTemplateLoader implements ZingTemplate{
     protected $twig = null;
     protected $vars = array();
 
+    /**
+     * Initialize the twig framework
+     * @return Twig
+     */
     public function init(){
         require_once __DIR__ . "/Autoloader.php";
         Twig_Autoloader::register();
@@ -24,6 +28,10 @@ class ZingTemplateLoader implements ZingTemplate{
         return $this->twig;
     }
 
+    /**
+     * Displays a template
+     * @param type $filename
+     */
     public function render($filename){
         $pos      = strrpos($filename, "Templates/");
         $filename = substr($filename, $pos + strlen("Templates/"));
@@ -31,10 +39,20 @@ class ZingTemplateLoader implements ZingTemplate{
         echo $template->render($this->vars);
     }
 
+    /**
+     * Assigns a value to a template key
+     * @param type $key
+     * @param type $value
+     */
     public function assign($key, $value = ""){
         $this->vars[$key] = $value;
     }
 
+    /**
+     * Appends a value to a template key array, creates the key if it doesn't exist
+     * @param type $key
+     * @param type $value
+     */
     public function append($key, $value = ""){
         if(!array_key_exists($key, $this->vars)){
             if(is_array($value)){
@@ -50,6 +68,13 @@ class ZingTemplateLoader implements ZingTemplate{
         }
     }
 
+    /**
+     * Gets and creates a template from a string instead of a file
+     * @param type $tpl
+     * @param type $data
+     * @param type $unUsed
+     * @return type
+     */
     public function parseTpl($tpl, $data, $unUsed = ""){
         $twig = new Twig_Environment(new Twig_Loader_String());
         return $twig->render($tpl, $data);
